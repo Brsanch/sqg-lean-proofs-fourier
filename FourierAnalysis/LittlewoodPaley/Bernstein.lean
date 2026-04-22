@@ -49,4 +49,24 @@ theorem sq_norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     _ ≤ (dyadicAnnulus N).card * ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ ^ 2 :=
         sq_sum_le_card_mul_sum_sq
 
+/-- Bernstein-type bound on the dyadic shell at level `N+1`:
+the squared pointwise value is controlled by `4^(N+2)` times the
+sum of squared Fourier moduli over the shell. -/
+theorem sq_norm_lpProjector_succ_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpProjector (N + 1) f x‖ ^ 2 ≤
+      (4 * 4 ^ (N + 1) : ℝ) *
+        ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 := by
+  have hcard : ((dyadicAnnulus (N + 1)).card : ℝ) ≤ 4 * 4 ^ (N + 1) := by
+    exact_mod_cast card_dyadicAnnulus_succ_le_four_pow N
+  have hnn : (0 : ℝ) ≤
+      ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+    Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+  calc ‖lpProjector (N + 1) f x‖ ^ 2
+      ≤ (dyadicAnnulus (N + 1)).card *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+        sq_norm_lpProjector_le (N + 1) f x
+    _ ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+        mul_le_mul_of_nonneg_right hcard hnn
+
 end FourierAnalysis
