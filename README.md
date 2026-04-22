@@ -14,12 +14,11 @@ This package is **upstream of several PDE projects**:
 
 ## Status
 
-**~1880 LOC, CI green.**  Littlewood–Paley decomposition, Bony
-paraproduct identity with L² bounds, Kato–Ponce commutator at the
-partial level, and homogeneous Sobolev infrastructure are all
-in-tree.  Remaining work targets the L² Kato–Ponce commutator
-quantitative bound (Coifman–Meyer–style) and downstream plumbing
-in consuming projects.
+**~2800 LOC, CI green.**  Littlewood–Paley decomposition, Bony
+paraproduct identity with L² (Parseval) bounds, **quantitative
+Ḣˢ-valued Kato–Ponce commutator bounds uniform-in-N** via dyadic-
+weighted Cauchy–Schwarz, and homogeneous Sobolev infrastructure
+are all in-tree.
 
 ## Module contents
 
@@ -43,11 +42,12 @@ FourierAnalysis/
                              Parseval, L∞×L² bilinear wrapper.
   KatoPonce/
     Product.lean          -- structural product bounds.
-    Commutator.lean       -- partialCommutator N f g with
-                             Bony expansion identity, four-piece
-                             triangle bound, and structural
-                             Kato–Ponce estimate combining the
-                             paraproduct + swap + remainder pieces.
+    Commutator.lean       -- partialCommutator N f g with Bony
+                             expansion identity, four-piece
+                             triangle bound, structural Kato–Ponce,
+                             quantitative Ḣˢ-valued bound, and
+                             **uniform-in-N fully-uniform bound**
+                             via dyadic-weighted Cauchy–Schwarz.
     SobolevEmbedding.lean -- hsSeminormSq, lattice zeta, geometric
                              convergence at s > 1, and the triangle
                              version of Ḣˢ ⊂ L∞.
