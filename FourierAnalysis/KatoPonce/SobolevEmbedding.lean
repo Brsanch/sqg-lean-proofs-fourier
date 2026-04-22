@@ -52,6 +52,14 @@ lemma mFourierCoeff_zero_fn (k : Fin 2 → ℤ) :
   unfold mFourierCoeff
   simp
 
+/-- The 2D Fourier coefficient is ℂ-linear in the function argument
+(scalar-multiplication case). -/
+lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
+    mFourierCoeff (c • f) k = c • mFourierCoeff f k := by
+  unfold mFourierCoeff
+  simp only [Pi.smul_apply, smul_comm (α := ℂ) c]
+  exact MeasureTheory.integral_smul _ _
+
 /-- The Ḣˢ seminorm of the zero function vanishes. -/
 lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := by
   unfold hsSeminormSq
