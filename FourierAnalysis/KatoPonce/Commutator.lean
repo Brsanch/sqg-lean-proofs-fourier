@@ -107,4 +107,94 @@ theorem norm_partialCommutator_via_projectors (N : ℕ) (f g : 𝕋² → ℂ) (
   rw [norm_mul]
   exact mul_le_mul_of_nonneg_left (norm_lpPartialSum_le _ _ _) (norm_nonneg _)
 
+/-- **Bony expansion of the partial commutator.**  Decomposes
+`partialCommutator N f g x = S_N(f·g)(x) - f(x) · S_N(g)(x)` as
+
+`partialCommutator N f g x =
+  [S_N(f·g)(x) - S_N(f)(x) · S_N(g)(x)]
+    - paraproductPartial N f g x
+    - paraproductPartial N g f x
+    - remainderPartial N f g x
+    + (S_N(f)(x) - f x) · S_N(g)(x)`
+
+using Bony's partial identity `bony_partial` on the `S_N(f) · S_N(g)`
+intermediate.  The lead bracket `S_N(f·g) - S_N(f)·S_N(g)` encodes the
+high-frequency correction vanishing in the `N → ∞` limit. -/
+theorem partialCommutator_eq_bony_expansion (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N f g x =
+      (lpPartialSum N (fun t => f t * g t) x -
+          lpPartialSum N f x * lpPartialSum N g x)
+        - paraproductPartial N f g x
+        - paraproductPartial N g f x
+        - remainderPartial N f g x
+        + (lpPartialSum N f x - f x) * lpPartialSum N g x := by
+  unfold partialCommutator
+  have hbony := bony_partial N f g x
+  linear_combination -hbony
+
+/-- Triangle bound on the partial commutator via the Bony expansion. -/
+theorem norm_partialCommutator_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖partialCommutator N f g x‖ ≤
+      ‖lpPartialSum N (fun t => f t * g t) x -
+          lpPartialSum N f x * lpPartialSum N g x‖
+        + ‖paraproductPartial N f g x‖
+        + ‖paraproductPartial N g f x‖
+        + ‖remainderPartial N f g x‖
+        + ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ := by
+  rw [partialCommutator_eq_bony_expansion]
+  have h1 : ‖(lpPartialSum N (fun t => f t * g t) x -
+                lpPartialSum N f x * lpPartialSum N g x) -
+              paraproductPartial N f g x -
+              paraproductPartial N g f x -
+              remainderPartial N f g x +
+              (lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤
+      ‖(lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x) -
+          paraproductPartial N f g x -
+          paraproductPartial N g f x -
+          remainderPartial N f g x‖ +
+        ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ :=
+    norm_add_le _ _
+  have h2 : ‖(lpPartialSum N (fun t => f t * g t) x -
+                lpPartialSum N f x * lpPartialSum N g x) -
+              paraproductPartial N f g x -
+              paraproductPartial N g f x -
+              remainderPartial N f g x‖ ≤
+      ‖(lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x) -
+          paraproductPartial N f g x -
+          paraproductPartial N g f x‖ +
+        ‖remainderPartial N f g x‖ := by
+    simpa [sub_eq_add_neg, norm_neg] using
+      (norm_sub_le
+        ((lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x) -
+          paraproductPartial N f g x -
+          paraproductPartial N g f x) (remainderPartial N f g x))
+  have h3 : ‖(lpPartialSum N (fun t => f t * g t) x -
+                lpPartialSum N f x * lpPartialSum N g x) -
+              paraproductPartial N f g x -
+              paraproductPartial N g f x‖ ≤
+      ‖(lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x) -
+          paraproductPartial N f g x‖ +
+        ‖paraproductPartial N g f x‖ := by
+    simpa [sub_eq_add_neg, norm_neg] using
+      (norm_sub_le
+        ((lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x) -
+          paraproductPartial N f g x) (paraproductPartial N g f x))
+  have h4 : ‖(lpPartialSum N (fun t => f t * g t) x -
+                lpPartialSum N f x * lpPartialSum N g x) -
+              paraproductPartial N f g x‖ ≤
+      ‖lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x‖ +
+        ‖paraproductPartial N f g x‖ := by
+    simpa [sub_eq_add_neg, norm_neg] using
+      (norm_sub_le
+        (lpPartialSum N (fun t => f t * g t) x -
+            lpPartialSum N f x * lpPartialSum N g x)
+        (paraproductPartial N f g x))
+  linarith
+
 end FourierAnalysis
