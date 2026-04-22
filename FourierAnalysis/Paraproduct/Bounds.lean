@@ -14,6 +14,17 @@ namespace FourierAnalysis
 
 open UnitAddTorus
 
+/-- Direct triangle bound on the paraproduct in its original ordered form
+(sum over `M` with coefficient `‖S_{M-3} f‖ · ‖Δ_M g‖`). -/
+theorem norm_paraproductPartial_direct_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖paraproductPartial N f g x‖ ≤
+      ∑ M ∈ Finset.Ico 3 (N + 1),
+        ‖lpPartialSum (M - 3) f x‖ * ‖lpProjector M g x‖ := by
+  unfold paraproductPartial
+  refine (norm_sum_le _ _).trans ?_
+  refine Finset.sum_le_sum (fun M _ => ?_)
+  rw [norm_mul]
+
 /-- Pointwise triangle bound on the paraproduct. -/
 theorem norm_paraproductPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     ‖paraproductPartial N f g x‖ ≤
