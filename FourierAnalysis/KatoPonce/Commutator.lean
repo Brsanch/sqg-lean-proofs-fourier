@@ -39,8 +39,6 @@ import FourierAnalysis.Paraproduct
 
 namespace FourierAnalysis
 
--- TODO: Kato–Ponce commutator estimate.  This is the key Path B
--- classical content blocking sqg-lean-proofs Item 5 unconditional
--- closure.
+-- TODO: Kato–Ponce commutator estimate.
 
 end FourierAnalysis

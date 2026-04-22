@@ -14,16 +14,15 @@ Dyadic Fourier projectors on 𝕋².
 - L^p bounds `‖Δ_N f‖_{L^p} ≤ C · ‖f‖_{L^p}` for `p ∈ [1, ∞]`.
 - Fourier-side computation: `(Δ_N f)̂(m) = 1_{m ∈ annulus N} · f̂(m)`.
 
-This file is a placeholder for incremental Path B work.
+This file is a placeholder; development is in progress.
 -/
 
 import Mathlib
 
 namespace FourierAnalysis
 
--- TODO: move concrete Δ_N content here from sqg-lean-proofs §11.1–§11.4.
--- The current in-tree definitions rely on `rieszTorusMeasureSpace` local
--- instance; first step is a clean `scoped` instance in this package so
--- the sqg-lean-proofs consumer can `open scoped FourierAnalysis`.
+-- TODO: dyadic projector Δ_N and its L^p bounds.  The first prerequisite
+-- is a `scoped` torus measure instance so downstream consumers can
+-- `open scoped FourierAnalysis` and pick up the same measurable structure.
 
 end FourierAnalysis

@@ -13,8 +13,7 @@ Bony paraproduct definitions.
   diagonal remainder.
 - Bony identity: `f * g = T_f g + T_g f + R(f, g)` in L²(𝕋²).
 
-These replace the `paraproduct = 0` / `paraRemainder = 0` stubs
-in sqg-lean-proofs §11.5 with concrete Fourier-side definitions.
+Classical Fourier-side definitions of the Bony decomposition.
 -/
 
 import FourierAnalysis.LittlewoodPaley

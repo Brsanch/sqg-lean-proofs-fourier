@@ -20,10 +20,8 @@ Depends on `FourierAnalysis.LittlewoodPaley` and
 `FourierAnalysis.Paraproduct`.
 
 **Downstream consumers** (planned):
-- `sqg-lean-proofs` Item 5 Path B closure (~500 LOC plumbing).
-- NS project Kato–Ponce applications.
-- Euler project Kato–Ponce applications.
-- MHD project Kato–Ponce applications.
+- `sqg-lean-proofs` regularity closure.
+- NS / Euler / MHD regularity proofs.
 -/
 
 import FourierAnalysis.Paraproduct
