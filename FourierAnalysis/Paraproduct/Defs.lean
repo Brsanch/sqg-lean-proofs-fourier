@@ -46,4 +46,13 @@ lemma paraproductPartial_succ {N : ℕ} (hN : 3 ≤ N + 1) (f g : 𝕋² → ℂ
   · ring
   · ext x; simp [Finset.mem_Ico, Finset.mem_insert]; omega
 
+/-- The product of two dyadic partial sums factorises as a double sum of projector
+products.  This is the entry point to Bony's decomposition `f·g = T_f g + T_g f + R`. -/
+lemma lpPartialSum_mul_lpPartialSum (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum N f x * lpPartialSum N g x =
+      ∑ M ∈ Finset.range (N + 1), ∑ M' ∈ Finset.range (N + 1),
+        lpProjector M f x * lpProjector M' g x := by
+  unfold lpPartialSum
+  exact Finset.sum_mul_sum _ _ _ _
+
 end FourierAnalysis
