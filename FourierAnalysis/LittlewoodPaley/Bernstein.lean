@@ -45,8 +45,8 @@ theorem sq_norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   have h2 : (0 : ℝ) ≤ ‖lpProjector N f x‖ := norm_nonneg _
   calc ‖lpProjector N f x‖ ^ 2
       ≤ (∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖) ^ 2 :=
-        pow_le_pow_left h2 h1 2
+        pow_le_pow_left₀ h2 h1 2
     _ ≤ (dyadicAnnulus N).card * ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ ^ 2 :=
-        Finset.sq_sum_le_card_mul_sum_sq
+        sq_sum_le_card_mul_sum_sq
 
 end FourierAnalysis
