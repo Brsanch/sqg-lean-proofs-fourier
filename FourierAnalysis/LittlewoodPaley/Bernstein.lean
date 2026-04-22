@@ -98,4 +98,30 @@ theorem norm_lpProjector_succ_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
           Real.sqrt (∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
         rw [Real.sqrt_mul hCsq, Real.sqrt_sq hC]
 
+/-- Under square-summability of the Fourier coefficients, the shell-level
+squared-moduli sum is bounded by the total tsum. -/
+theorem sum_shell_sq_mFourierCoeff_le_tsum (f : 𝕋² → ℂ) (N : ℕ)
+    (hsum : Summable (fun k : Fin 2 → ℤ => ‖mFourierCoeff f k‖ ^ 2)) :
+    ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ ^ 2 ≤
+      ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2 :=
+  Finset.sum_le_tsum (dyadicAnnulus N) (fun _ _ => sq_nonneg _) hsum
+
+/-- Bernstein on the shell at level `N+1` in terms of the total tsum of
+squared Fourier moduli.  Under square-summability, the tsum equals
+`∫ ‖f‖²` by `hasSum_sq_mFourierCoeff`. -/
+theorem sq_norm_lpProjector_succ_le_tsum (f : 𝕋² → ℂ) (N : ℕ) (x : 𝕋²)
+    (hsum : Summable (fun k : Fin 2 → ℤ => ‖mFourierCoeff f k‖ ^ 2)) :
+    ‖lpProjector (N + 1) f x‖ ^ 2 ≤
+      (4 * 4 ^ (N + 1) : ℝ) *
+        ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2 := by
+  have hnn : (0 : ℝ) ≤ 4 * 4 ^ (N + 1) := by positivity
+  calc ‖lpProjector (N + 1) f x‖ ^ 2
+      ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+        sq_norm_lpProjector_succ_le N f x
+    _ ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2 :=
+        mul_le_mul_of_nonneg_left
+          (sum_shell_sq_mFourierCoeff_le_tsum f (N + 1) hsum) hnn
+
 end FourierAnalysis
