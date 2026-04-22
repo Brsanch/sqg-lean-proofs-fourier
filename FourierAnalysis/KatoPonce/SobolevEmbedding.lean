@@ -69,6 +69,30 @@ lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := b
   unfold hsSeminormSq
   simp [mFourierCoeff_zero_fn]
 
+/-- `Real.rpow` form of the per-shell bound using the identity
+`4^(N+1) · (2^N)^(-2s) · 4 = 16 · 2^(2N(1-s))` (expressed as rpow). -/
+private lemma rpow_shell_simplify (N : ℕ) (s : ℝ) :
+    (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) =
+      16 * (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ)) := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h2_nn : (0 : ℝ) ≤ 2 := le_of_lt h2_pos
+  have h1 : ((2 : ℝ) ^ N) ^ (-(2 * s)) = (2 : ℝ) ^ (-(2 * s) * (N : ℝ)) := by
+    rw [show ((2 : ℝ) ^ N) = (2 : ℝ) ^ ((N : ℝ)) from (Real.rpow_natCast 2 N).symm,
+        ← Real.rpow_mul h2_nn]
+    ring_nf
+  have h2 : (4 : ℝ) * 4 ^ (N + 1) = 16 * (2 : ℝ) ^ (2 * (N : ℝ)) := by
+    rw [pow_succ]
+    rw [show (4 : ℝ) ^ N = (2 : ℝ) ^ (2 * (N : ℝ)) by
+      rw [show (4 : ℝ) = 2 ^ 2 from by norm_num,
+          show ((2:ℝ)^2)^N = ((2:ℝ)^(2*(N:ℝ))) from ?_]
+      rw [← Real.rpow_natCast ((2 : ℝ)^2) N, ← Real.rpow_natCast 2 2,
+          ← Real.rpow_mul h2_nn]
+      push_cast; ring_nf]
+    ring
+  rw [h1, h2]
+  rw [mul_assoc, mul_assoc, ← Real.rpow_add h2_pos]
+  ring_nf
+
 /-- Per-shell lattice zeta contribution: the sum of `|k|^{-2s}` over the
 dyadic shell at level `N+1` is at most `4 · 4^(N+1) · 2^(-2s·N)`, using
 the cardinality bound and the ℓ∞ lower bound `|k|_∞ ≥ 2^N` on the shell. -/
