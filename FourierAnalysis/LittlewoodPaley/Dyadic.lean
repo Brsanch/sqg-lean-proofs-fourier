@@ -367,37 +367,21 @@ lemma lInfBall_two_pow_mono {M N : ℕ} (h : M ≤ N) :
     lInfBall (2 ^ M) ⊆ lInfBall (2 ^ N) :=
   lInfBall_subset (Nat.pow_le_pow_right (by norm_num) h)
 
-/-- Every lattice point `k` belongs to some dyadic shell. -/
-lemma exists_dyadicAnnulus_mem (k : Fin 2 → ℤ) :
-    ∃ N : ℕ, k ∈ dyadicAnnulus N := by
-  by_cases hk : k = 0
-  · exact ⟨0, mem_dyadicAnnulus_zero.mpr hk⟩
-  · -- k ≠ 0, so lInfNorm k ≥ 1.  Pick N with 2^{N-1} ≤ lInfNorm k < 2^N.
-    have hM : 0 < lInfNorm k := by
-      refine Nat.pos_of_ne_zero (fun h => hk ?_)
-      exact lInfNorm_eq_zero h
-    -- Use Nat.log2: N = log2(lInfNorm k) + 1
-    refine ⟨Nat.log2 (lInfNorm k) + 1, ?_⟩
-    rw [mem_dyadicAnnulus_succ]
-    refine ⟨?_, ?_⟩
-    · exact Nat.pow_log2_le_self _ (Nat.ne_of_gt hM)
-    · exact Nat.lt_pow_succ_log_self (by norm_num) _
-
-/-- Cardinality is positive for nonzero dyadic shells `N+1`. -/
+/-- Cardinality is positive for nonzero dyadic shells `N+1` — the shell
+contains the coordinate-axis element `(2^N, 0)`. -/
 lemma card_dyadicAnnulus_succ_pos (N : ℕ) : 0 < (dyadicAnnulus (N + 1)).card := by
-  -- The shell contains e.g. (2^N, 0).
   apply Finset.card_pos.mpr
-  refine ⟨fun i => if i = 0 then (2^N : ℤ) else 0, ?_⟩
+  refine ⟨fun i => if i = 0 then (2 ^ N : ℤ) else 0, ?_⟩
   rw [mem_dyadicAnnulus_succ]
-  have hN : (1 : ℕ) ≤ 2 ^ N := Nat.one_le_two_pow
   refine ⟨?_, ?_⟩
-  · -- 2^N ≤ lInfNorm (fun i => if i = 0 then 2^N else 0)
-    simp [lInfNorm]
-  · -- lInfNorm < 2^(N+1)
-    simp only [lInfNorm]
-    have : ((2 ^ N : ℤ).natAbs : ℕ) = 2 ^ N := by
-      rw [Int.natAbs_ofNat]
-    omega
+  · simp [lInfNorm]
+  · simp only [lInfNorm]
+    have habs : ((2 ^ N : ℤ)).natAbs = 2 ^ N := by
+      induction N with
+      | zero => rfl
+      | succ N ih => rw [pow_succ]; push_cast; rw [Int.natAbs_mul]; simp [ih]
+    simp [habs]
+    exact Nat.pow_lt_pow_right (by norm_num : 1 < 2) (Nat.lt_succ_self _)
 
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
