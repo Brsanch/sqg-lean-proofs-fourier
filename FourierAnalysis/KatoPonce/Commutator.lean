@@ -170,7 +170,8 @@ theorem norm_partialCommutator_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : �
   -- Goal: ‖S - P1 - P2 - R + T‖ ≤ ‖S‖ + ‖P1‖ + ‖P2‖ + ‖R‖ + ‖T‖.
   calc ‖S - P1 - P2 - R + T‖
       = ‖S + (-P1) + (-P2) + (-R) + T‖ := by
-        congr 1; ring
+        have h : S - P1 - P2 - R + T = S + (-P1) + (-P2) + (-R) + T := by ring
+        rw [h]
     _ ≤ ‖S + (-P1) + (-P2) + (-R)‖ + ‖T‖ := norm_add_le _ _
     _ ≤ ‖S + (-P1) + (-P2)‖ + ‖(-R)‖ + ‖T‖ := by
         have := norm_add_le (S + (-P1) + (-P2)) (-R); linarith
