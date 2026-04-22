@@ -306,7 +306,6 @@ lemma lpPartialSum_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     funext t; simp
   rw [h, lpPartialSum_smul]; simp
 
-open UnitAddTorus in
 /-- Any finite set `S ⊆ ℤ²` is eventually contained in the ball `lInfBall (2^N)`
 for sufficiently large `N`.  This is the cofinality property that drives
 the convergence `lpPartialSum N f x → f x` as `N → ∞` when the Fourier
@@ -328,6 +327,28 @@ lemma exists_lInfBall_contains (S : Finset (Fin 2 → ℤ)) :
       calc M < M + 1 := Nat.lt_succ_self _
         _ ≤ 2 ^ (M + 1) := Nat.lt_two_pow_self.le
     omega
+
+/-- The dyadic-ball sequence is cofinal in the directed set of finite subsets
+of `ℤ²`.  Together with `lpPartialSum_eq_sum_lInfBall`, this converts any
+`HasSum`-style Fourier series convergence into pointwise convergence
+of partial sums `lpPartialSum N f x → f x`. -/
+lemma tendsto_lInfBall_atTop_atTop :
+    Filter.Tendsto (fun N : ℕ => lInfBall (2 ^ N)) Filter.atTop Filter.atTop := by
+  rw [Filter.tendsto_atTop]
+  intro T
+  obtain ⟨N₀, hN₀⟩ := exists_lInfBall_contains T
+  refine Filter.eventually_atTop.mpr ⟨N₀, fun M hM => ?_⟩
+  exact hN₀.trans (lInfBall_subset (Nat.pow_le_pow_right (by norm_num) hM))
+
+open UnitAddTorus in
+/-- Pointwise convergence of `lpPartialSum N f x → S` as `N → ∞`, given a
+`HasSum` for the Fourier series. -/
+theorem tendsto_lpPartialSum_of_hasSum
+    (f : 𝕋² → ℂ) (S : ℂ) (x : 𝕋²)
+    (hs : HasSum (fun k : Fin 2 → ℤ => mFourierCoeff f k • mFourier k x) S) :
+    Filter.Tendsto (fun N : ℕ => lpPartialSum N f x) Filter.atTop (nhds S) := by
+  simp_rw [lpPartialSum_eq_sum_lInfBall]
+  exact hs.comp tendsto_lInfBall_atTop_atTop
 
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
