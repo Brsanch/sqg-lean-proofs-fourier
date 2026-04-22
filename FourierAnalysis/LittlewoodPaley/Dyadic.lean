@@ -61,7 +61,7 @@ lemma lInfNorm_eq_zero {k : Fin 2 → ℤ} (h : lInfNorm k = 0) : k = 0 := by
 /-! ### Lattice ℓ∞ balls on ℤ² -/
 
 /-- Open ℓ∞ ball on `ℤ²`: `{k : ‖k‖_∞ < R}`, as a `Finset`. -/
-def lInfBall (R : ℕ) : Finset (Fin 2 → ℤ) :=
+noncomputable def lInfBall (R : ℕ) : Finset (Fin 2 → ℤ) :=
   Fintype.piFinset (fun _ => Finset.Ioo (-(R : ℤ)) R)
 
 lemma mem_lInfBall {R : ℕ} {k : Fin 2 → ℤ} :
@@ -69,8 +69,8 @@ lemma mem_lInfBall {R : ℕ} {k : Fin 2 → ℤ} :
   simp only [lInfBall, Fintype.mem_piFinset, Finset.mem_Ioo, lInfNorm, max_lt_iff]
   constructor
   · intro h
-    have h0 := h 0
-    have h1 := h 1
+    obtain ⟨h0l, h0r⟩ := h 0
+    obtain ⟨h1l, h1r⟩ := h 1
     refine ⟨?_, ?_⟩ <;> omega
   · rintro ⟨h0, h1⟩ i
     fin_cases i
@@ -92,7 +92,7 @@ lemma lInfBall_subset {R S : ℕ} (hRS : R ≤ S) : lInfBall R ⊆ lInfBall S :=
 - For `N = 0`: the low-frequency block `{k : ‖k‖_∞ < 1} = {0}`.
 - For `N ≥ 1`: the shell `{k : 2^{N-1} ≤ ‖k‖_∞ < 2^N}`.
 -/
-def dyadicAnnulus : ℕ → Finset (Fin 2 → ℤ)
+noncomputable def dyadicAnnulus : ℕ → Finset (Fin 2 → ℤ)
   | 0     => {0}
   | N + 1 => lInfBall (2 ^ (N + 1)) \ lInfBall (2 ^ N)
 
