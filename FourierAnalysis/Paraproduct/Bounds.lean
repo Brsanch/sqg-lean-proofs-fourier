@@ -9,6 +9,7 @@ Pointwise and dyadic estimates for the Bony paraproduct and remainder.
 -/
 
 import FourierAnalysis.Paraproduct.Defs
+import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
 
@@ -150,5 +151,29 @@ lemma remainderPartial_eq_zero_of_lpProjector_zero_right
   obtain ⟨⟨_, hp2⟩, _⟩ := hp
   rw [hg p.2 (by omega)]
   ring
+
+/-! ### Parseval-style pointwise bounds via Bernstein
+
+The following lemmas control pointwise-squared values by Fourier-side
+sums of squared moduli, using the Bernstein-type bound
+`sq_norm_lpProjector_succ_le`.  They are the finite-level substitutes
+for the classical `∫ ‖S_N f‖² ≤ ∑ ‖f̂‖²` identity: the pointwise
+squared bound follows the same Cauchy–Schwarz structure, aggregated
+shell-by-shell. -/
+
+/-- Shell-indexed Bernstein: squared pointwise bound on `lpPartialSum N f x`
+in terms of the sum of per-shell cardinalities times per-shell squared
+Fourier moduli.  Aggregates `sq_norm_lpProjector_le` across all shells. -/
+theorem sq_norm_lpPartialSum_shell_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpPartialSum N f x‖ ^ 2 ≤
+      (N + 1 : ℕ) *
+        ∑ j ∈ Finset.range (N + 1),
+          (dyadicAnnulus j).card *
+            ∑ k ∈ dyadicAnnulus j, ‖mFourierCoeff f k‖ ^ 2 := by
+  refine (sq_norm_lpPartialSum_le N f x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun j _ => ?_)
+    exact sq_norm_lpProjector_le j f x
+  · exact_mod_cast Nat.zero_le _
 
 end FourierAnalysis
