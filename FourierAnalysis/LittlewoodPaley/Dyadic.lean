@@ -227,4 +227,14 @@ lemma lpPartialSum_eq_sum_lInfBall (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   rw [← Finset.sum_biUnion (dyadicAnnulus_pairwiseDisjoint N),
       ← lInfBall_eq_biUnion_dyadicAnnulus]
 
+lemma lpPartialSum_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum 0 f x = lpProjector 0 f x := by
+  unfold lpPartialSum
+  simp
+
+lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
+  unfold lpPartialSum
+  rw [Finset.sum_range_succ]
+
 end FourierAnalysis
