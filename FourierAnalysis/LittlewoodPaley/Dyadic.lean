@@ -128,4 +128,29 @@ lemma card_dyadicAnnulus_succ_le (N : ℕ) :
   simp only [dyadicAnnulus, Finset.mem_sdiff] at hk
   exact hk.1
 
+/-! ### Lattice cardinality closed forms
+
+Each coordinate factor `Finset.Ioo (-R, R) ⊂ ℤ` has cardinality `2R - 1`
+for `R ≥ 1` (and `0` for `R = 0`).  The 2D ball is the product. -/
+
+lemma card_lInfBall_le (R : ℕ) : (lInfBall R).card ≤ (2 * R) ^ 2 := by
+  rw [lInfBall, Fintype.card_piFinset, Fin.prod_univ_two]
+  have h : (Finset.Ioo (-(R : ℤ)) R).card ≤ 2 * R := by
+    rw [Int.card_Ioo]
+    omega
+  calc (Finset.Ioo (-(R : ℤ)) R).card * (Finset.Ioo (-(R : ℤ)) R).card
+      ≤ (2 * R) * (2 * R) := Nat.mul_le_mul h h
+    _ = (2 * R) ^ 2 := by ring
+
+/-- Dyadic shell size is `O(4^N)` uniformly (needed for Bernstein). -/
+lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
+    (dyadicAnnulus (N + 1)).card ≤ 4 ^ (N + 2) := by
+  calc (dyadicAnnulus (N + 1)).card
+      ≤ (lInfBall (2 ^ (N + 1))).card := card_dyadicAnnulus_succ_le N
+    _ ≤ (2 * 2 ^ (N + 1)) ^ 2 := card_lInfBall_le _
+    _ = 4 ^ (N + 2) := by
+        rw [show (2 * 2 ^ (N + 1) : ℕ) = 2 ^ (N + 2) by ring]
+        rw [show (4 : ℕ) = 2 ^ 2 from rfl, ← pow_mul]
+        ring_nf
+
 end FourierAnalysis
