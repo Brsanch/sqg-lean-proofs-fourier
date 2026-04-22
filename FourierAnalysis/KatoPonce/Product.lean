@@ -61,4 +61,17 @@ theorem norm_lpPartialSum_product_le_of_bony_bounds
   refine (norm_lpPartialSum_product_le_bony _ _ _ _).trans ?_
   linarith
 
+/-- Squared version of the structural Kato–Ponce bound, chaining into the
+Cauchy–Schwarz form. -/
+theorem sq_norm_lpPartialSum_product_le_of_sq_bony_bounds
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {B1 B2 B3 : ℝ}
+    (hB1 : ‖paraproductPartial N f g x‖ ^ 2 ≤ B1)
+    (hB2 : ‖paraproductPartial N g f x‖ ^ 2 ≤ B2)
+    (hB3 : ‖remainderPartial N f g x‖ ^ 2 ≤ B3) :
+    ‖lpPartialSum N f x * lpPartialSum N g x‖ ^ 2 ≤ 3 * (B1 + B2 + B3) := by
+  refine (sq_norm_lpPartialSum_product_le _ _ _ _).trans ?_
+  have : (0 : ℝ) ≤ (3 : ℝ) := by norm_num
+  nlinarith
+
 end FourierAnalysis
