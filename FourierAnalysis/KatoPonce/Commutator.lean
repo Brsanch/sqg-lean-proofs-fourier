@@ -303,4 +303,49 @@ theorem norm_remainderPartial_le_of_cumulative_bounds
     (fun j hj => norm_lpProjector_le_cumulative N g x j hj)
     (Finset.sum_nonneg (fun _ _ => norm_nonneg _))
 
+/-! ### Combined Kato–Ponce partial-level structural bound
+
+Chaining the Bony-expanded triangle bound with the three piece bounds
+(paraproduct + symmetric + remainder) yields a structural commutator
+estimate at the partial level.  The `L∞` control on `f` and `g`
+enters via cumulative shell-sum hypotheses; the final bound has five
+pieces, matching the classical Kato–Ponce structure up to the
+pointwise-tail term `(S_N(f) - f)·S_N(g)`. -/
+
+/-- **Kato–Ponce commutator bound at the partial level.**
+
+Given cumulative shell-sum bounds on `f` and `g`, and pointwise control
+on `S_N(f·g)` and the tail `(S_N(f) - f)·S_N(g)`, the partial
+commutator is bounded by the sum of:
+
+- the pointwise `S_N(f·g)` value (`Sfg`);
+- the paraproduct-T piece (`Mf` times the shell-sum of `g`);
+- the symmetric-T piece (`Mg` times the shell-sum of `f`);
+- the remainder piece (diagonal-band cardinality times `Mf·Mg`);
+- the tail `‖(S_N(f) - f)·S_N(g) x‖` (encoding the `N → ∞` limit). -/
+theorem norm_partialCommutator_structural_le
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Mf Mg : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) (hMg : 0 ≤ Mg) :
+    ‖partialCommutator N f g x‖ ≤
+      ‖lpPartialSum N (fun t => f t * g t) x‖
+        + Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖
+        + Mg * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖
+        + ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+              (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Mf * Mg)
+        + ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ := by
+  refine (norm_partialCommutator_le_bony N f g x).trans ?_
+  have hP1 := norm_paraproductPartial_le_of_cumulative_bound N f g x hf hMf
+  have hP2 := norm_paraproductPartial_swap_le_of_cumulative_bound N f g x hg hMg
+  have hR : ‖remainderPartial N f g x‖ ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Mf * Mg) := by
+    refine norm_remainderPartial_le_of_shell_bounds N f g x ?_ ?_ hMf
+    · intro j hj
+      exact (norm_lpProjector_le_cumulative N f x j hj).trans hf
+    · intro j hj
+      exact (norm_lpProjector_le_cumulative N g x j hj).trans hg
+  linarith
+
 end FourierAnalysis
