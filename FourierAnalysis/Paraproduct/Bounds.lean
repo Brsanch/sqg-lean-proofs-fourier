@@ -88,4 +88,17 @@ theorem sq_norm_remainderPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²
         pow_le_pow_left₀ h2 h1 2
     _ ≤ _ := sq_sum_le_card_mul_sum_sq
 
+/-- Loose bound on the paraproduct: combines the card bound `≤ (N+1)²` with the
+Cauchy–Schwarz form. -/
+theorem sq_norm_paraproductPartial_loose_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => p.1 + 3 ≤ p.2),
+          (‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 := by
+  refine (sq_norm_paraproductPartial_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_right
+  · exact_mod_cast card_paraproduct_filter_le N
+  · exact Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+
 end FourierAnalysis
