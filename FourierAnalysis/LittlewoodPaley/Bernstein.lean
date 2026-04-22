@@ -27,9 +27,10 @@ theorem norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   refine (norm_sum_le _ _).trans ?_
   refine Finset.sum_le_sum (fun k _ => ?_)
   rw [norm_smul]
-  have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 := by
-    rw [show (1 : ℝ) = ‖mFourier (d := Fin 2) k‖ from (mFourier_norm).symm]
-    exact (mFourier k).norm_coe_le_norm x
+  have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 :=
+    calc ‖(mFourier k : 𝕋² → ℂ) x‖
+        ≤ ‖mFourier (d := Fin 2) k‖ := (mFourier k).norm_coe_le_norm x
+      _ = 1 := mFourier_norm
   calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
       ≤ ‖mFourierCoeff f k‖ * 1 := by
         exact mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
