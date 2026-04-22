@@ -124,4 +124,26 @@ theorem sq_norm_lpProjector_succ_le_tsum (f : 𝕋² → ℂ) (N : ℕ) (x : �
         mul_le_mul_of_nonneg_left
           (sum_shell_sq_mFourierCoeff_le_tsum f (N + 1) hsum) hnn
 
+/-- Square-root form of the tsum Bernstein: `‖Δ_{N+1} f x‖ ≤ 2·2^(N+1) · √(∑' ‖f̂‖²)`.
+Combined with `hasSum_sq_mFourierCoeff` this reproduces the classical
+`‖Δ_{N+1} f‖_{L∞} ≤ 2·2^(N+1) · ‖f‖_{L²}` for `f ∈ L²`. -/
+theorem norm_lpProjector_succ_le_tsum (f : 𝕋² → ℂ) (N : ℕ) (x : 𝕋²)
+    (hsum : Summable (fun k : Fin 2 → ℤ => ‖mFourierCoeff f k‖ ^ 2)) :
+    ‖lpProjector (N + 1) f x‖ ≤
+      (2 * 2 ^ (N + 1) : ℝ) *
+        Real.sqrt (∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2) := by
+  have htsum_nn : (0 : ℝ) ≤ ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2 :=
+    tsum_nonneg (fun _ => sq_nonneg _)
+  have hshell_le : Real.sqrt (∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) ≤
+      Real.sqrt (∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2) :=
+    Real.sqrt_le_sqrt (sum_shell_sq_mFourierCoeff_le_tsum f (N + 1) hsum)
+  have hC : (0 : ℝ) ≤ 2 * (2 : ℝ) ^ (N + 1) := by positivity
+  calc ‖lpProjector (N + 1) f x‖
+      ≤ (2 * 2 ^ (N + 1) : ℝ) *
+          Real.sqrt (∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) :=
+        norm_lpProjector_succ_le N f x
+    _ ≤ (2 * 2 ^ (N + 1) : ℝ) *
+          Real.sqrt (∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2) :=
+        mul_le_mul_of_nonneg_left hshell_le hC
+
 end FourierAnalysis
