@@ -27,6 +27,22 @@ theorem norm_lpPartialSum_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold lpPartialSum
   exact norm_sum_le _ _
 
+/-- Cauchy–Schwarz form on the partial sum: squared norm is bounded by
+`(N+1) · ∑ ‖Δ_j f x‖²`. -/
+theorem sq_norm_lpPartialSum_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpPartialSum N f x‖ ^ 2 ≤
+      (N + 1 : ℕ) * ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ^ 2 := by
+  have hle := norm_lpPartialSum_le N f x
+  have hnn : (0 : ℝ) ≤ ‖lpPartialSum N f x‖ := norm_nonneg _
+  calc ‖lpPartialSum N f x‖ ^ 2
+      ≤ (∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) ^ 2 :=
+        pow_le_pow_left₀ hnn hle 2
+    _ ≤ (Finset.range (N + 1)).card *
+          ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ^ 2 :=
+        sq_sum_le_card_mul_sum_sq
+    _ = (N + 1 : ℕ) * ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ^ 2 := by
+        rw [Finset.card_range]
+
 /-- Pointwise triangle-inequality bound on the dyadic projector. -/
 theorem norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     ‖lpProjector N f x‖ ≤ ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ := by
