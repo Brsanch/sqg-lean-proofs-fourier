@@ -1223,4 +1223,52 @@ theorem norm_remainderPartial_le_uniform
         mul_le_mul_of_nonneg_right hf hg_nn
     _ ≤ Mf * Mg := mul_le_mul_of_nonneg_left hg hMf
 
+/-! ### Fully-uniform-in-`N` quantitative Kato–Ponce commutator
+
+Combining the uniform-in-`N` paraproduct bound
+`norm_paraproductPartial_le_hs_uniform` with the uniform-in-`N` remainder
+bound `norm_remainderPartial_le_uniform` yields a Kato–Ponce commutator
+estimate in which every explicit factor depends only on `s` (via the
+prefactor `C_s = 4 · (1 - 2^(-(s-1)))⁻¹`) and the caller-supplied
+`L∞`/tail bounds `Mf, Mg, Sfg, T`.  No `(N+1)`-growing factor appears.
+
+The `Sfg` and `T` fields remain abstract hypotheses to be discharged by
+the caller from ambient Sobolev-embedding bounds (see e.g.
+`norm_le_tsum_mFourierCoeff` in `KatoPonce/SobolevEmbedding.lean`). -/
+
+/-- **Fully-uniform-in-`N` Kato–Ponce partial commutator bound.**
+
+Every explicit prefactor depends only on `s` and the caller-supplied
+bounds `Mf, Mg, Sfg, T`:
+
+`‖partialCommutator N f g x‖ ≤
+   Sfg + Mf · C_s · √(Ḣˢ_g) + Mg · C_s · √(Ḣˢ_f) + Mf · Mg + T`
+
+with `C_s := 4·(1-2^(-(s-1)))⁻¹`.  Dropping the `(N+1)²`-scale cardinality
+from `norm_partialCommutator_le_hs_uniform`. -/
+theorem norm_partialCommutator_le_hs_fully_uniform
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) (s : ℝ) (hs : 1 < s)
+    {Mf Mg Sfg T : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) (hMg : 0 ≤ Mg)
+    (hfsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2))
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2))
+    (hSfg : ‖lpPartialSum N (fun t => f t * g t) x‖ ≤ Sfg)
+    (hTail : ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤ T) :
+    ‖partialCommutator N f g x‖ ≤
+      Sfg
+        + Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s g)
+        + Mg * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s f)
+        + Mf * Mg + T := by
+  have hbony := norm_partialCommutator_le_bony N f g x
+  have hpp := norm_paraproductPartial_le_hs_uniform N s hs f g x hf hMf hgsum
+  have hps := norm_paraproductPartial_le_hs_uniform N s hs g f x hg hMg hfsum
+  have hR := norm_remainderPartial_le_uniform N f g x hf hg hMf
+  linarith
+
 end FourierAnalysis
