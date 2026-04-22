@@ -292,6 +292,20 @@ lemma lpPartialSum_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold lpPartialSum
   simp
 
+/-- The dyadic projector anticommutes with negation. -/
+@[simp] lemma lpProjector_neg (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpProjector N (-f) x = -lpProjector N f x := by
+  have h : (-f : 𝕋² → ℂ) = ((-1 : ℂ) • f) := by
+    funext t; simp
+  rw [h, lpProjector_smul]; simp
+
+/-- The dyadic partial sum anticommutes with negation. -/
+@[simp] lemma lpPartialSum_neg (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum N (-f) x = -lpPartialSum N f x := by
+  have h : (-f : 𝕋² → ℂ) = ((-1 : ℂ) • f) := by
+    funext t; simp
+  rw [h, lpPartialSum_smul]; simp
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum
