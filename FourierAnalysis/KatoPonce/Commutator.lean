@@ -420,4 +420,90 @@ theorem sum_shell_sq_le_hsSeminormSq_weighted
         refine mul_le_mul_of_nonneg_left hshell_le_hs ?_
         exact inv_nonneg.mpr (le_of_lt hpow_rpow_pos)
 
+/-! ### Cumulative Bernstein → `hsSeminormSq` wrapper
+
+Applying the shell Bernstein bound
+`‖Δ_{N+1} f x‖² ≤ 4·4^(N+1) · ∑_{shell N+1} ‖f̂(k)‖²` on each shell and
+then the shell-sum → `Ḣˢ` bridge gives
+`‖Δ_{N+1} f x‖² ≤ 4·4^(N+1) · (2^N)^(-2s) · hsSeminormSq s f`.
+Summing over shells `1 ≤ j ≤ N+1` yields a geometric-series bound by
+`hsSeminormSq s f` alone for `s > 1`. -/
+
+/-- Shell-level combined Bernstein + `Ḣˢ` bridge at shell `N+1`:
+`‖Δ_{N+1} f x‖² ≤ (4·4^(N+1)) · (2^N)^(-2s) · hsSeminormSq s f`. -/
+theorem sq_norm_lpProjector_succ_le_hsSeminormSq
+    (N : ℕ) (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ) (x : 𝕋²)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ‖lpProjector (N + 1) f x‖ ^ 2 ≤
+      (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) *
+        hsSeminormSq s f := by
+  have hnn : (0 : ℝ) ≤ 4 * (4 : ℝ) ^ (N + 1) := by positivity
+  have hshell := sum_shell_sq_le_hsSeminormSq_weighted N s hs f hsum
+  calc ‖lpProjector (N + 1) f x‖ ^ 2
+      ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+        sq_norm_lpProjector_succ_le N f x
+    _ ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          (((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f) :=
+        mul_le_mul_of_nonneg_left hshell hnn
+    _ = (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) *
+          hsSeminormSq s f := by ring
+
+/-- Per-shell coefficient simplified to geometric form:
+`4·4^(N+1) · (2^N)^(-2s) = 16 · 2^(2(1-s)·N)`. -/
+private lemma shell_coeff_eq_geometric (N : ℕ) (s : ℝ) :
+    (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) =
+      16 * (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ)) :=
+  rpow_shell_simplify N s
+
+/-- **Cumulative Bernstein → `Ḣˢ` wrapper.**  For `s > 1`, the sum of
+squared projector norms over shells `1 ≤ j ≤ N+1` is bounded by
+`(∑_{j=0}^N 16·2^(2(1-s)j)) · hsSeminormSq s f`. -/
+theorem cumulative_bernstein_le_hsSeminormSq
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f : 𝕋² → ℂ) (x : 𝕋²)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2 ≤
+      (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s f := by
+  have hs_pos : 0 < s := by linarith
+  have hhs_nn : 0 ≤ hsSeminormSq s f := hsSeminormSq_nonneg s f
+  have hshell : ∀ j ∈ Finset.range (N + 1),
+      ‖lpProjector (j + 1) f x‖ ^ 2 ≤
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f := by
+    intro j _
+    have hbase := sq_norm_lpProjector_succ_le_hsSeminormSq j s hs_pos f x hsum
+    have heq := shell_coeff_eq_geometric j s
+    calc ‖lpProjector (j + 1) f x‖ ^ 2
+        ≤ (4 * 4 ^ (j + 1) : ℝ) * ((2 : ℝ) ^ j) ^ (-(2 * s)) *
+            hsSeminormSq s f := hbase
+      _ = 16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f := by
+          rw [heq]
+  calc ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2
+      ≤ ∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f :=
+        Finset.sum_le_sum hshell
+    _ = (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s f := by
+        rw [Finset.sum_mul]
+
+/-- The per-shell geometric coefficient is nonnegative (trivial). -/
+lemma shell_geom_coeff_nonneg (s : ℝ) (j : ℕ) :
+    0 ≤ 16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h1 : 0 ≤ (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) :=
+    le_of_lt (Real.rpow_pos_of_pos h2_pos _)
+  linarith
+
+/-- The cumulative geometric constant `∑_{j=0}^N 16·2^(2(1-s)j)` is
+nonnegative. -/
+lemma cumulative_geom_coeff_nonneg (N : ℕ) (s : ℝ) :
+    0 ≤ ∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) := by
+  refine Finset.sum_nonneg (fun j _ => ?_)
+  exact shell_geom_coeff_nonneg s j
+
 end FourierAnalysis
