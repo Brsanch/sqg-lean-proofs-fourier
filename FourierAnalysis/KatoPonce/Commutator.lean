@@ -251,4 +251,56 @@ theorem norm_paraproductPartial_swap_le_of_cumulative_bound
       Mg * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ :=
   norm_paraproductPartial_le_of_cumulative_bound N g f x hg hMg
 
+/-! ### Remainder piece: `R(f, g)` bound
+
+The symmetric remainder `remainderPartial N f g x` is bounded by the
+product of shell-projector factors on the diagonal band `|M - M'| ≤ 2`. -/
+
+/-- Remainder bounded by a product of shell-level bounds on `f` and `g`:
+for any uniform bounds `‖Δ_j f x‖ ≤ Af` and `‖Δ_j g x‖ ≤ Ag` across
+`j ≤ N`, the remainder is bounded by `(diagonal-band card) · (Af · Ag)`. -/
+theorem norm_remainderPartial_le_of_shell_bounds
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Af Ag : ℝ}
+    (hAf : ∀ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Af)
+    (hAg : ∀ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Ag)
+    (hAf_nn : 0 ≤ Af) :
+    ‖remainderPartial N f g x‖ ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Af * Ag) := by
+  refine (norm_remainderPartial_le N f g x).trans ?_
+  have hsum_const :
+      ((((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card : ℝ) * (Af * Ag)) =
+        ∑ _p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2), Af * Ag := by
+    rw [Finset.sum_const, nsmul_eq_mul]
+  rw [hsum_const]
+  refine Finset.sum_le_sum (fun p hp => ?_)
+  rw [Finset.mem_filter, Finset.mem_product, Finset.mem_range, Finset.mem_range] at hp
+  obtain ⟨⟨h1, h2⟩, _⟩ := hp
+  have hp1 : p.1 ∈ Finset.range (N + 1) := Finset.mem_range.mpr h1
+  have hp2 : p.2 ∈ Finset.range (N + 1) := Finset.mem_range.mpr h2
+  exact mul_le_mul (hAf p.1 hp1) (hAg p.2 hp2) (norm_nonneg _) hAf_nn
+
+/-- For any `j ∈ range (N+1)`, `‖Δ_j f x‖ ≤ ∑_{k ≤ N} ‖Δ_k f x‖`. -/
+lemma norm_lpProjector_le_cumulative (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) (j : ℕ)
+    (hj : j ∈ Finset.range (N + 1)) :
+    ‖lpProjector j f x‖ ≤ ∑ k ∈ Finset.range (N + 1), ‖lpProjector k f x‖ :=
+  Finset.single_le_sum (f := fun k => ‖lpProjector k f x‖)
+    (fun _ _ => norm_nonneg _) hj
+
+/-- Remainder bounded by the product of the cumulative shell-sums of `f` and
+`g`, weighted by the diagonal-band cardinality. -/
+theorem norm_remainderPartial_le_of_cumulative_bounds
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card *
+        ((∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) *
+          ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖) :=
+  norm_remainderPartial_le_of_shell_bounds N f g x
+    (fun j hj => norm_lpProjector_le_cumulative N f x j hj)
+    (fun j hj => norm_lpProjector_le_cumulative N g x j hj)
+    (Finset.sum_nonneg (fun _ _ => norm_nonneg _))
+
 end FourierAnalysis
