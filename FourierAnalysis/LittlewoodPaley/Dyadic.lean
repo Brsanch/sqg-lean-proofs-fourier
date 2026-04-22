@@ -261,6 +261,24 @@ lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
   simp_rw [h]
   exact MeasureTheory.integral_smul c _
 
+open UnitAddTorus in
+/-- The dyadic projector is ℂ-linear in the function (scalar case). -/
+lemma lpProjector_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpProjector N (c • f) x = c • lpProjector N f x := by
+  unfold lpProjector
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [mFourierCoeff_smul, smul_smul]
+
+open UnitAddTorus in
+/-- The dyadic partial sum is ℂ-linear in the function (scalar case). -/
+lemma lpPartialSum_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum N (c • f) x = c • lpPartialSum N f x := by
+  unfold lpPartialSum
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun j _ => ?_)
+  rw [lpProjector_smul]
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum
