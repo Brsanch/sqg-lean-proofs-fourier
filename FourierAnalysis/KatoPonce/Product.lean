@@ -27,6 +27,6 @@ theorem norm_lpPartialSum_product_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : 
         ‖paraproductPartial N g f x‖ +
         ‖remainderPartial N f g x‖ := by
   rw [bony_partial]
-  exact (norm_add_le _ _).trans (add_le_add_right (norm_add_le _ _) _)
+  exact (norm_add_le _ _).trans (add_le_add (norm_add_le _ _) le_rfl)
 
 end FourierAnalysis
