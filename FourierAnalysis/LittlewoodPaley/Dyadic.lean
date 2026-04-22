@@ -170,4 +170,27 @@ lemma disjoint_dyadicAnnulus_lInfBall (N : ℕ) :
   rw [mem_lInfBall] at hkB
   omega
 
+/-- Telescoping form: the ball of radius `2^N` is the disjoint union of
+the dyadic shells at levels `0, 1, …, N`. -/
+lemma lInfBall_eq_biUnion_dyadicAnnulus (N : ℕ) :
+    lInfBall (2 ^ N) = (Finset.range (N + 1)).biUnion dyadicAnnulus := by
+  induction N with
+  | zero =>
+      ext k
+      rw [mem_lInfBall]
+      simp only [pow_zero, Finset.range_one, Finset.mem_biUnion, Finset.mem_range,
+                 Nat.lt_one_iff]
+      constructor
+      · intro h
+        refine ⟨0, rfl, ?_⟩
+        rw [mem_dyadicAnnulus_zero]
+        exact lInfNorm_eq_zero (by omega)
+      · rintro ⟨j, rfl, hkj⟩
+        rw [mem_dyadicAnnulus_zero] at hkj
+        subst hkj
+        simp
+  | succ N ih =>
+      rw [← dyadicAnnulus_union_lInfBall N, ih, Finset.range_succ (n := N + 1),
+          Finset.biUnion_insert]
+
 end FourierAnalysis
