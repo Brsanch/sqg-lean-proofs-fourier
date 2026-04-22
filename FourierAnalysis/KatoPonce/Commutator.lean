@@ -705,4 +705,48 @@ theorem norm_paraproductPartial_le_hs
             hsSeminormSq s g) :=
         mul_le_mul_of_nonneg_left hsqrt hMf
 
+/-- Squared form of the paraproduct-piece bound.  Squaring the linear
+bound gives `‖paraproductPartial N f g x‖² ≤ Mf² · C(N,s) · hsSeminormSq s g`
+directly (the `Real.sqrt` is absorbed back by `Real.sq_sqrt`). -/
+theorem sq_norm_paraproductPartial_le_hs
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf)
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2)) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      Mf ^ 2 * ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g) := by
+  have hlin := norm_paraproductPartial_le_hs N s hs f g x hf hMf hgsum
+  have hpp_nn : 0 ≤ ‖paraproductPartial N f g x‖ := norm_nonneg _
+  have hrhs_nn : (0 : ℝ) ≤ (N + 1 : ℕ) *
+      (∑ j ∈ Finset.range (N + 1),
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g := by
+    refine mul_nonneg (mul_nonneg ?_ ?_) (hsSeminormSq_nonneg s g)
+    · exact_mod_cast Nat.zero_le _
+    · exact cumulative_geom_coeff_nonneg N s
+  have hsqrt_nn : (0 : ℝ) ≤ Real.sqrt ((N + 1 : ℕ) *
+      (∑ j ∈ Finset.range (N + 1),
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g) := Real.sqrt_nonneg _
+  have hrhs_mul_nn : (0 : ℝ) ≤ Mf *
+      Real.sqrt ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g) := mul_nonneg hMf hsqrt_nn
+  calc ‖paraproductPartial N f g x‖ ^ 2
+      ≤ (Mf * Real.sqrt ((N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g)) ^ 2 := pow_le_pow_left₀ hpp_nn hlin 2
+    _ = Mf ^ 2 * ((N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g) := by
+        rw [mul_pow, Real.sq_sqrt hrhs_nn]
+
 end FourierAnalysis
