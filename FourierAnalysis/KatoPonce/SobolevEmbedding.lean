@@ -33,6 +33,22 @@ lemma hsSeminormSq_nonneg (s : ℝ) (f : 𝕋² → ℂ) : 0 ≤ hsSeminormSq s 
   have h2 : (0 : ℝ) ≤ ‖mFourierCoeff f k‖ ^ 2 := sq_nonneg _
   exact mul_nonneg h1 h2
 
+/-- For positive `s`, the `k = 0` term vanishes in `hsSeminormSq`; the sum
+is effectively over nonzero lattice points. -/
+lemma hsSeminormSq_eq_tsum_nonzero (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ) :
+    hsSeminormSq s f =
+      ∑' k : Fin 2 → ℤ,
+        if k = 0 then 0 else (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 := by
+  unfold hsSeminormSq
+  congr 1
+  funext k
+  by_cases hk : k = 0
+  · subst hk
+    rw [if_pos rfl, lInfNorm_zero, Nat.cast_zero]
+    rw [Real.zero_rpow (by linarith : 2 * s ≠ 0)]
+    ring
+  · rw [if_neg hk]
+
 /-- Lattice zeta constant: `∑' k ≠ 0, |k|_∞^{-2s}`.  Converges for `s > 1`
 (dimension 2).  This is the dual quantity controlling the Cauchy–Schwarz
 bound in the Sobolev embedding. -/
