@@ -268,7 +268,8 @@ lemma lpProjector_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold lpProjector
   rw [Finset.smul_sum]
   refine Finset.sum_congr rfl (fun k _ => ?_)
-  rw [mFourierCoeff_smul, smul_eq_mul, mul_smul]
+  rw [mFourierCoeff_smul]
+  simp [smul_smul, mul_assoc]
 
 open UnitAddTorus in
 /-- The dyadic partial sum is ℂ-linear in the function (scalar case). -/
