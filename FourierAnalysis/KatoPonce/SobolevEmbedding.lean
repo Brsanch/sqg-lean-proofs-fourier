@@ -123,4 +123,41 @@ lemma sum_shell_rpow_neg_le (N : ℕ) (s : ℝ) (hs : 0 < s) :
         · exact_mod_cast card_dyadicAnnulus_succ_le_four_pow N
         · exact Real.rpow_nonneg (le_of_lt hpow_pos) _
 
+/-- Per-shell bound in geometric form: the shell at level `N+1` contributes
+at most `16 · 2^(2N(1-s))` to the lattice zeta. -/
+theorem sum_shell_rpow_neg_le_geometric (N : ℕ) (s : ℝ) (hs : 0 < s) :
+    ∑ k ∈ dyadicAnnulus (N + 1), (lInfNorm k : ℝ) ^ (-(2 * s)) ≤
+      16 * (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ)) :=
+  (sum_shell_rpow_neg_le N s hs).trans (le_of_eq (rpow_shell_simplify N s))
+
+/-- For `s > 1`, the per-shell lattice-zeta contributions are summable
+(bounded by a convergent geometric series with ratio `2^(2(1-s)) < 1`). -/
+theorem summable_shell_rpow_neg (s : ℝ) (hs : 1 < s) :
+    Summable (fun N : ℕ =>
+      ∑ k ∈ dyadicAnnulus (N + 1), (lInfNorm k : ℝ) ^ (-(2 * s))) := by
+  have hs_pos : 0 < s := by linarith
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h2_nn : (0 : ℝ) ≤ 2 := le_of_lt h2_pos
+  have hr : (2 : ℝ) ^ (2 * (1 - s)) < 1 := by
+    rw [show (1 : ℝ) = (2 : ℝ) ^ (0 : ℝ) from (Real.rpow_zero 2).symm]
+    apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num : 1 < 2)
+    linarith
+  have hr_pos : 0 < (2 : ℝ) ^ (2 * (1 - s)) := Real.rpow_pos_of_pos h2_pos _
+  have hr_nn : 0 ≤ (2 : ℝ) ^ (2 * (1 - s)) := le_of_lt hr_pos
+  have hpow_conv : ∀ N : ℕ,
+      (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ)) = ((2 : ℝ) ^ (2 * (1 - s))) ^ N := by
+    intro N
+    rw [show ((2 : ℝ) ^ (2 * (1 - s))) ^ N = (2 : ℝ) ^ ((2 * (1 - s)) * (N : ℝ)) from ?_]
+    · rfl
+    · rw [← Real.rpow_natCast ((2 : ℝ) ^ (2 * (1 - s))) N,
+          ← Real.rpow_mul h2_nn]
+  have hgeo : Summable (fun N : ℕ => 16 * (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ))) := by
+    simp_rw [hpow_conv]
+    exact (summable_geometric_of_lt_one hr_nn hr).mul_left 16
+  refine Summable.of_nonneg_of_le ?_ ?_ hgeo
+  · intro N
+    exact Finset.sum_nonneg (fun k _ => Real.rpow_nonneg (Nat.cast_nonneg _) _)
+  · intro N
+    exact sum_shell_rpow_neg_le_geometric N s hs_pos
+
 end FourierAnalysis
