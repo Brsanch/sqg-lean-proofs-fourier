@@ -178,19 +178,23 @@ lemma lInfBall_eq_biUnion_dyadicAnnulus (N : ℕ) :
   | zero =>
       ext k
       rw [mem_lInfBall]
-      simp only [pow_zero, Finset.range_one, Finset.mem_biUnion, Finset.mem_range,
-                 Nat.lt_one_iff]
+      simp only [pow_zero, Finset.mem_biUnion, Finset.mem_range]
       constructor
       · intro h
-        refine ⟨0, rfl, ?_⟩
+        refine ⟨0, by omega, ?_⟩
         rw [mem_dyadicAnnulus_zero]
         exact lInfNorm_eq_zero (by omega)
-      · rintro ⟨j, rfl, hkj⟩
+      · rintro ⟨j, hj, hkj⟩
+        have hj0 : j = 0 := by omega
+        subst hj0
         rw [mem_dyadicAnnulus_zero] at hkj
         subst hkj
         simp
   | succ N ih =>
-      rw [← dyadicAnnulus_union_lInfBall N, ih, Finset.range_succ (n := N + 1),
-          Finset.biUnion_insert]
+      have hins : Finset.range (N + 2) = insert (N + 1) (Finset.range (N + 1)) := by
+        ext x
+        simp only [Finset.mem_insert, Finset.mem_range]
+        omega
+      rw [← dyadicAnnulus_union_lInfBall N, ih, hins, Finset.biUnion_insert]
 
 end FourierAnalysis
