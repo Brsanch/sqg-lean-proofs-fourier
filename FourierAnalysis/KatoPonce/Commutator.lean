@@ -3,42 +3,35 @@ Copyright (c) 2026 Bryan Sanchez. All rights reserved.
 Released under MIT license.
 Authors: Bryan Sanchez
 
-Kato–Ponce commutator estimate on 𝕋².
+# Kato–Ponce commutator estimate on `𝕋²`
 
-**Contents (planned, ~500 LOC):**
+The partial commutator `[S_N, M_f] g = S_N(fg) - f · S_N(g)` measures
+the failure of `S_N` to commute with pointwise multiplication by `f`.
 
-`kato_ponce_commutator :
-  ‖[Jˢ, f · ∇]g‖_{L²} ≤ C·(‖∇f‖_{L∞}·‖g‖_{Ḣˢ} + ‖f‖_{Ḣˢ}·‖∇g‖_{L∞})`
-
-where `[Jˢ, f·∇]g = Jˢ(f·∇g) − f·∇(Jˢg)`.
-
-**Why this is the harder form:** the product Kato–Ponce is a trivial
-consequence of Bony decomposition; the commutator requires a delicate
-symbol-calculus argument (Coifman–Meyer type) that the MAIN term
-`f·∇(Jˢg)` cancels, leaving a remainder controllable by
-gradient-type L∞ bounds without a full derivative loss.
-
-**Why SQG needs this form rather than the product form:** the Galerkin
-energy estimate
-`d/dt ‖θ‖²_{Ḣˢ} = -2·Re⟨Jˢθ, Jˢ(u·∇θ)⟩ = -2·Re⟨Jˢθ, [Jˢ, u·∇]θ⟩`
-(the main term vanishes because `u` is divergence-free), gives
-`|d/dt ‖θ‖²_{Ḣˢ}| ≤ C·‖∇θ‖_{L∞}·‖θ‖²_{Ḣˢ}`, which is LINEAR in
-the Ḣˢ energy and closes under BKM-integral via Grönwall.  The
-product Kato–Ponce applied directly would lose a derivative.
-
-**Classical references:**
-- Kato, T.; Ponce, G. *Commutator estimates and the Euler and
-  Navier–Stokes equations.* Comm. Pure Appl. Math. 41 (1988).
-- Coifman, R.; Meyer, Y. *Nonlinear harmonic analysis, operator
-  theory, and P.D.E.* (1978) — paraproduct techniques.
-
-Depends on `FourierAnalysis.Paraproduct` and `.LittlewoodPaley`.
+This file collects pointwise identities at the partial (truncated)
+level.  The full commutator estimate
+`‖[Jˢ, f·∇]g‖_{L²} ≤ C·(‖∇f‖_{L∞}·‖g‖_{Ḣˢ} + ‖f‖_{Ḣˢ}·‖∇g‖_{L∞})`
+in the limit `N → ∞` uses the Bony decomposition from
+`FourierAnalysis.Paraproduct.Defs` and the Bernstein bounds from
+`FourierAnalysis.LittlewoodPaley.Bernstein`.
 -/
 
-import FourierAnalysis.Paraproduct
+import FourierAnalysis.Paraproduct.Bounds
+import FourierAnalysis.KatoPonce.Product
 
 namespace FourierAnalysis
 
--- TODO: Kato–Ponce commutator estimate.
+open UnitAddTorus
+
+/-- Partial commutator at level `N`: `[S_N, M_f] g x := S_N(f·g) x - f x · S_N(g) x`. -/
+noncomputable def partialCommutator (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) : ℂ :=
+  lpPartialSum N (fun t => f t * g t) x - f x * lpPartialSum N g x
+
+/-- Triangle bound on the partial commutator. -/
+theorem norm_partialCommutator_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖partialCommutator N f g x‖ ≤
+      ‖lpPartialSum N (fun t => f t * g t) x‖ + ‖f x * lpPartialSum N g x‖ := by
+  unfold partialCommutator
+  exact norm_sub_le _ _
 
 end FourierAnalysis
