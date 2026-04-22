@@ -33,6 +33,16 @@ lemma hsSeminormSq_nonneg (s : ℝ) (f : 𝕋² → ℂ) : 0 ≤ hsSeminormSq s 
   have h2 : (0 : ℝ) ≤ ‖mFourierCoeff f k‖ ^ 2 := sq_nonneg _
   exact mul_nonneg h1 h2
 
+/-- Each weighted Fourier mode is bounded by the full `hsSeminormSq`, under
+summability of the weighted series. -/
+lemma hsSeminormSq_ge_term (s : ℝ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤ hsSeminormSq s f := by
+  unfold hsSeminormSq
+  exact le_tsum hsum k (fun _ _ =>
+    mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (sq_nonneg _))
+
 /-- For positive `s`, the `k = 0` term vanishes in `hsSeminormSq`; the sum
 is effectively over nonzero lattice points. -/
 lemma hsSeminormSq_eq_tsum_nonzero (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ) :
