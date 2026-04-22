@@ -46,4 +46,16 @@ lemma partialCommutator_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     simp
   simp [lpPartialSum, lpProjector, hmF]
 
+/-- Structural Kato–Ponce commutator bound: given pointwise bounds on
+`S_N(f·g)` and on `f · S_N(g)`, the partial commutator is bounded by
+their sum.  Downstream use: combine Bony-based bounds on `S_N(f·g)`
+with direct bounds on `f · S_N(g)` from Bernstein. -/
+theorem norm_partialCommutator_le_of_bounds
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {A B : ℝ}
+    (hA : ‖lpPartialSum N (fun t => f t * g t) x‖ ≤ A)
+    (hB : ‖f x * lpPartialSum N g x‖ ≤ B) :
+    ‖partialCommutator N f g x‖ ≤ A + B :=
+  (norm_partialCommutator_le N f g x).trans (add_le_add hA hB)
+
 end FourierAnalysis
