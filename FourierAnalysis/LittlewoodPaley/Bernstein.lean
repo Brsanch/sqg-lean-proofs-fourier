@@ -104,7 +104,7 @@ theorem sum_shell_sq_mFourierCoeff_le_tsum (f : 𝕋² → ℂ) (N : ℕ)
     (hsum : Summable (fun k : Fin 2 → ℤ => ‖mFourierCoeff f k‖ ^ 2)) :
     ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ ^ 2 ≤
       ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ^ 2 :=
-  Finset.sum_le_tsum (dyadicAnnulus N) (fun _ _ => sq_nonneg _) hsum
+  hsum.sum_le_tsum (dyadicAnnulus N) (fun _ _ => sq_nonneg _)
 
 /-- Bernstein on the shell at level `N+1` in terms of the total tsum of
 squared Fourier moduli.  Under square-summability, the tsum equals
