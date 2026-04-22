@@ -66,16 +66,9 @@ noncomputable def lInfBall (R : ℕ) : Finset (Fin 2 → ℤ) :=
 
 lemma mem_lInfBall {R : ℕ} {k : Fin 2 → ℤ} :
     k ∈ lInfBall R ↔ lInfNorm k < R := by
-  simp only [lInfBall, Fintype.mem_piFinset, Finset.mem_Ioo, lInfNorm, max_lt_iff]
-  constructor
-  · intro h
-    obtain ⟨h0l, h0r⟩ := h 0
-    obtain ⟨h1l, h1r⟩ := h 1
-    refine ⟨?_, ?_⟩ <;> omega
-  · rintro ⟨h0, h1⟩ i
-    fin_cases i
-    · exact ⟨by omega, by omega⟩
-    · exact ⟨by omega, by omega⟩
+  simp only [lInfBall, Fintype.mem_piFinset, Finset.mem_Ioo, lInfNorm, max_lt_iff,
+             Fin.forall_fin_two]
+  omega
 
 @[simp] lemma lInfBall_zero : lInfBall 0 = ∅ := by
   ext k; simp [mem_lInfBall]
@@ -110,25 +103,21 @@ lemma dyadicAnnulus_disjoint_of_lt {M N : ℕ} (hMN : M < N) :
     Disjoint (dyadicAnnulus M) (dyadicAnnulus N) := by
   rw [Finset.disjoint_left]
   intro k hkM hkN
-  -- Any element of any dyadic shell with index ≥ 1 has ‖k‖_∞ ≥ 1 > 0.
-  -- Shell 0 has only the origin.  So `0 ∈ shell M` forces `M = 0` and
-  -- then `0 ∈ shell N` with `N ≥ 1` gives `2^{N-1} ≤ 0`, contradiction.
-  match M, N, hMN with
-  | 0, 0, h => exact (lt_irrefl _ h).elim
-  | 0, N + 1, _ =>
-      rw [mem_dyadicAnnulus_zero] at hkM
-      subst hkM
-      rw [mem_dyadicAnnulus_succ] at hkN
-      have hpos : 0 < 2 ^ N := Nat.pos_of_ne_zero (by positivity)
-      simp at hkN
+  rcases M with _ | M'
+  · -- M = 0 ⇒ k = 0; shell N ≥ 1 requires ‖k‖_∞ ≥ 2^{N-1} ≥ 1, contradiction.
+    rw [mem_dyadicAnnulus_zero] at hkM
+    subst hkM
+    rcases N with _ | N'
+    · exact absurd hMN (lt_irrefl 0)
+    · rw [mem_dyadicAnnulus_succ, lInfNorm_zero] at hkN
+      have hpow : 1 ≤ 2 ^ N' := Nat.one_le_two_pow
       omega
-  | M + 1, 0, h => exact (Nat.not_lt_zero _ h).elim
-  | M + 1, N + 1, h =>
-      rw [mem_dyadicAnnulus_succ] at hkM hkN
-      -- M + 1 < N + 1 ⇒ M + 1 ≤ N ⇒ 2^{M+1} ≤ 2^N.
-      have hMN' : M + 1 ≤ N := by omega
-      have hpow : (2 : ℕ) ^ (M + 1) ≤ 2 ^ N :=
-        Nat.pow_le_pow_right (by norm_num) hMN'
+  · rcases N with _ | N'
+    · exact absurd hMN (Nat.not_lt_zero _)
+    · rw [mem_dyadicAnnulus_succ] at hkM hkN
+      have hpow : (2 : ℕ) ^ (M' + 1) ≤ 2 ^ N' := by
+        apply Nat.pow_le_pow_right (by norm_num)
+        omega
       omega
 
 /-- Cardinality bound: a dyadic shell is contained in a ball. -/
@@ -136,7 +125,7 @@ lemma card_dyadicAnnulus_succ_le (N : ℕ) :
     (dyadicAnnulus (N + 1)).card ≤ (lInfBall (2 ^ (N + 1))).card := by
   refine Finset.card_le_card ?_
   intro k hk
-  simp [dyadicAnnulus] at hk
+  simp only [dyadicAnnulus, Finset.mem_sdiff] at hk
   exact hk.1
 
 end FourierAnalysis
