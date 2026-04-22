@@ -101,4 +101,16 @@ theorem sq_norm_paraproductPartial_loose_le (N : ℕ) (f g : 𝕋² → ℂ) (x 
   · exact_mod_cast card_paraproduct_filter_le N
   · exact Finset.sum_nonneg (fun _ _ => sq_nonneg _)
 
+/-- Loose bound on the remainder: analogous to `sq_norm_paraproductPartial_loose_le`. -/
+theorem sq_norm_remainderPartial_loose_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2),
+          (‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 := by
+  refine (sq_norm_remainderPartial_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_right
+  · exact_mod_cast card_remainder_filter_le N
+  · exact Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+
 end FourierAnalysis
