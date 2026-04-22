@@ -81,12 +81,14 @@ lemma paraproductPartial_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x : �
     ?_ ?_ ?_ ?_ ?_
   · intro y hy
     simp only [Finset.mem_sigma, Finset.mem_Ico, Finset.mem_range] at hy
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hy
     simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
-    omega
+    refine ⟨⟨?_, ?_⟩, ?_⟩ <;> omega
   · intro q hq
     simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hq
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hq
     simp only [Finset.mem_sigma, Finset.mem_Ico, Finset.mem_range]
-    omega
+    refine ⟨⟨?_, ?_⟩, ?_⟩ <;> omega
   · intro _ _; rfl
   · intro _ _; rfl
   · intro _ _; rfl
