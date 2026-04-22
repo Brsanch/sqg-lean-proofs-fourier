@@ -55,4 +55,16 @@ lemma lpPartialSum_mul_lpPartialSum (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²
   unfold lpPartialSum
   exact Finset.sum_mul_sum _ _ _ _
 
+/-- The paraproduct written as a restricted double sum over the "low × high"
+index set `{(j, M) : 0 ≤ j ≤ M - 3, 3 ≤ M ≤ N}`. -/
+lemma paraproductPartial_eq_double_sum (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N f g x =
+      ∑ M ∈ Finset.Ico 3 (N + 1), ∑ j ∈ Finset.range (M - 2),
+        lpProjector j f x * lpProjector M g x := by
+  unfold paraproductPartial lpPartialSum
+  refine Finset.sum_congr rfl (fun M hM => ?_)
+  rw [Finset.sum_mul]
+  rw [show M - 3 + 1 = M - 2 by
+        rw [Finset.mem_Ico] at hM; omega]
+
 end FourierAnalysis
