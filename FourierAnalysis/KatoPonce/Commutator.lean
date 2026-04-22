@@ -749,4 +749,76 @@ theorem sq_norm_paraproductPartial_le_hs
           hsSeminormSq s g) := by
         rw [mul_pow, Real.sq_sqrt hrhs_nn]
 
+/-! ### Uniform-in-`N` geometric-series prefactor
+
+For `ε > 0`, the partial sum `∑_{j=0}^{N} 2^(-ε·j)` is bounded uniformly
+in `N` by `(1 - 2^(-ε))⁻¹`.  This is the first factor in the dyadic-
+weighted Cauchy–Schwarz estimate that removes the `(N+1)` factor from
+the quantitative Kato–Ponce commutator bound. -/
+
+/-- The geometric-series ratio `2^(-ε)` is in `[0, 1)` for `ε > 0`. -/
+private lemma two_rpow_neg_eps_lt_one {ε : ℝ} (hε : 0 < ε) :
+    (2 : ℝ) ^ (-ε) < 1 := by
+  have h2_one_lt : (1 : ℝ) < 2 := by norm_num
+  rw [show (1 : ℝ) = (2 : ℝ) ^ (0 : ℝ) from (Real.rpow_zero 2).symm]
+  exact Real.rpow_lt_rpow_of_exponent_lt h2_one_lt (by linarith)
+
+/-- The geometric-series ratio `2^(-ε)` is positive. -/
+private lemma two_rpow_neg_eps_pos (ε : ℝ) : (0 : ℝ) < (2 : ℝ) ^ (-ε) :=
+  Real.rpow_pos_of_pos (by norm_num : (0 : ℝ) < 2) _
+
+/-- Summability of the geometric series `j ↦ 2^(-ε·j)` (as a real-valued
+ℕ-indexed sum) for `ε > 0`.  This is the key `HasSum`-free form used in
+the partial-sum bound. -/
+theorem summable_two_rpow_neg_eps {ε : ℝ} (hε : 0 < ε) :
+    Summable (fun j : ℕ => (2 : ℝ) ^ (-ε * (j : ℝ))) := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h2_nn : (0 : ℝ) ≤ 2 := le_of_lt h2_pos
+  have hr_lt : (2 : ℝ) ^ (-ε) < 1 := two_rpow_neg_eps_lt_one hε
+  have hr_pos : 0 < (2 : ℝ) ^ (-ε) := two_rpow_neg_eps_pos ε
+  have hr_nn : 0 ≤ (2 : ℝ) ^ (-ε) := le_of_lt hr_pos
+  have hid : ∀ j : ℕ,
+      (2 : ℝ) ^ (-ε * (j : ℝ)) = ((2 : ℝ) ^ (-ε)) ^ j := by
+    intro j
+    rw [← Real.rpow_natCast ((2 : ℝ) ^ (-ε)) j, ← Real.rpow_mul h2_nn]
+  simp_rw [hid]
+  exact summable_geometric_of_lt_one hr_nn hr_lt
+
+/-- **Uniform-in-`N` partial geometric-sum bound.**  For `ε > 0`, the
+partial sum of `2^(-ε·j)` over `j ∈ range (N+1)` is bounded by
+`(1 - 2^(-ε))⁻¹`, independent of `N`. -/
+theorem geometric_two_neg_eps_partial_le {ε : ℝ} (hε : 0 < ε) (N : ℕ) :
+    ∑ j ∈ Finset.range (N + 1), (2 : ℝ) ^ (-ε * (j : ℝ)) ≤
+      (1 - (2 : ℝ) ^ (-ε))⁻¹ := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h2_nn : (0 : ℝ) ≤ 2 := le_of_lt h2_pos
+  have hr_lt : (2 : ℝ) ^ (-ε) < 1 := two_rpow_neg_eps_lt_one hε
+  have hr_pos : 0 < (2 : ℝ) ^ (-ε) := two_rpow_neg_eps_pos ε
+  have hr_nn : 0 ≤ (2 : ℝ) ^ (-ε) := le_of_lt hr_pos
+  have hsum := summable_two_rpow_neg_eps hε
+  have htsum : ∑' j : ℕ, (2 : ℝ) ^ (-ε * (j : ℝ)) = (1 - (2 : ℝ) ^ (-ε))⁻¹ := by
+    have hid : ∀ j : ℕ,
+        (2 : ℝ) ^ (-ε * (j : ℝ)) = ((2 : ℝ) ^ (-ε)) ^ j := by
+      intro j
+      rw [← Real.rpow_natCast ((2 : ℝ) ^ (-ε)) j, ← Real.rpow_mul h2_nn]
+    simp_rw [hid]
+    exact tsum_geometric_of_lt_one hr_nn hr_lt
+  calc ∑ j ∈ Finset.range (N + 1), (2 : ℝ) ^ (-ε * (j : ℝ))
+      ≤ ∑' j : ℕ, (2 : ℝ) ^ (-ε * (j : ℝ)) :=
+        hsum.sum_le_tsum _
+          (fun j _ => le_of_lt (Real.rpow_pos_of_pos h2_pos _))
+    _ = (1 - (2 : ℝ) ^ (-ε))⁻¹ := htsum
+
+/-- The prefactor `(1 - 2^(-ε))⁻¹` is positive for `ε > 0`. -/
+lemma geometric_two_neg_eps_prefactor_pos {ε : ℝ} (hε : 0 < ε) :
+    0 < (1 - (2 : ℝ) ^ (-ε))⁻¹ := by
+  have hlt : (2 : ℝ) ^ (-ε) < 1 := two_rpow_neg_eps_lt_one hε
+  have hpos : 0 < 1 - (2 : ℝ) ^ (-ε) := by linarith
+  exact inv_pos.mpr hpos
+
+/-- The prefactor `(1 - 2^(-ε))⁻¹` is nonnegative for `ε > 0`. -/
+lemma geometric_two_neg_eps_prefactor_nonneg {ε : ℝ} (hε : 0 < ε) :
+    0 ≤ (1 - (2 : ℝ) ^ (-ε))⁻¹ :=
+  le_of_lt (geometric_two_neg_eps_prefactor_pos hε)
+
 end FourierAnalysis
