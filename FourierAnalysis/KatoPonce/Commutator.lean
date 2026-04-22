@@ -58,4 +58,24 @@ theorem norm_partialCommutator_le_of_bounds
     ‖partialCommutator N f g x‖ ≤ A + B :=
   (norm_partialCommutator_le N f g x).trans (add_le_add hA hB)
 
+/-- Scalar linearity of the partial commutator in the left argument. -/
+lemma partialCommutator_smul_left (N : ℕ) (c : ℂ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N (c • f) g x = c • partialCommutator N f g x := by
+  unfold partialCommutator
+  have h1 : (fun t : 𝕋² => (c • f) t * g t) = c • (fun t : 𝕋² => f t * g t) := by
+    funext t; simp [Pi.smul_apply, smul_eq_mul]; ring
+  rw [h1, lpPartialSum_smul]
+  simp [Pi.smul_apply, smul_eq_mul, mul_sub]
+  ring
+
+/-- Scalar linearity of the partial commutator in the right argument. -/
+lemma partialCommutator_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N f (c • g) x = c • partialCommutator N f g x := by
+  unfold partialCommutator
+  have h1 : (fun t : 𝕋² => f t * (c • g) t) = c • (fun t : 𝕋² => f t * g t) := by
+    funext t; simp [Pi.smul_apply, smul_eq_mul]; ring
+  rw [h1, lpPartialSum_smul]
+  simp [Pi.smul_apply, smul_eq_mul, mul_sub]
+  ring
+
 end FourierAnalysis
