@@ -182,4 +182,58 @@ theorem norm_partialCommutator_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : �
     _ = ‖S‖ + ‖P1‖ + ‖P2‖ + ‖R‖ + ‖T‖ := by
         simp [norm_neg]
 
+/-! ### Paraproduct piece: `T_f g` bound for the commutator
+
+The low-times-high paraproduct contribution to the commutator is
+`T^{≤N}_f g (x) = ∑_{3 ≤ M ≤ N} S_{M-3}(f)(x) · Δ_M(g)(x)`.  In the
+Kato–Ponce commutator estimate this piece is bounded by
+`‖f‖_{L∞} · (∑_M ‖Δ_M g x‖)`.  We encode the `L∞`-style bound on
+`S_{M-3}(f)(x)` as an abstract hypothesis `Mf` satisfied by any
+ambient `L∞` bound on `f` via `norm_lpPartialSum_le` + triangle. -/
+
+/-- Paraproduct piece bounded by a uniform bound on the low-frequency
+factor times the sum of high-frequency projector norms. -/
+theorem norm_paraproductPartial_le_of_low_bound
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Mf : ℝ}
+    (hf : ∀ M ∈ Finset.Ico 3 (N + 1), ‖lpPartialSum (M - 3) f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf) :
+    ‖paraproductPartial N f g x‖ ≤
+      Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ := by
+  refine (norm_paraproductPartial_direct_le N f g x).trans ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum (fun M hM => ?_)
+  calc ‖lpPartialSum (M - 3) f x‖ * ‖lpProjector M g x‖
+      ≤ Mf * ‖lpProjector M g x‖ :=
+        mul_le_mul_of_nonneg_right (hf M hM) (norm_nonneg _)
+
+/-- Uniform `L∞`-style bound on all dyadic partial sums of `f` at a
+point, given a uniform bound on the shell-projector sums.  This is the
+"triangle-level" replacement for `‖f‖_{L∞}` in the commutator estimate. -/
+lemma norm_lpPartialSum_le_of_uniform
+    (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (K : ℕ) (hK : K ≤ N) :
+    ‖lpPartialSum K f x‖ ≤ Mf := by
+  refine (norm_lpPartialSum_le K f x).trans ?_
+  refine (Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_).trans hf
+  · intro j hj
+    rw [Finset.mem_range] at hj ⊢
+    omega
+  · intro _ _ _
+    exact norm_nonneg _
+
+/-- Paraproduct piece bounded by the cumulative `L∞`-style bound on `f`
+(the sum of all shell-projector norms up to level `N`) times the sum
+of high-frequency projectors of `g`. -/
+theorem norm_paraproductPartial_le_of_cumulative_bound
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf) :
+    ‖paraproductPartial N f g x‖ ≤
+      Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ := by
+  refine norm_paraproductPartial_le_of_low_bound N f g x ?_ hMf
+  intro M hM
+  rw [Finset.mem_Ico] at hM
+  exact norm_lpPartialSum_le_of_uniform N f x hf (M - 3) (by omega)
+
 end FourierAnalysis
