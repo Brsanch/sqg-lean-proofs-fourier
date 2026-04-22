@@ -1170,4 +1170,105 @@ theorem norm_partialCommutator_le_hs_uniform
       exact (norm_lpProjector_le_cumulative N g x j hj).trans hg
   linarith
 
+/-! ### Uniform-in-`N` remainder piece via double cumulative sum
+
+The diagonal-band filter `{(j,k) : |j - k| ≤ 2}` is a subset of the full
+product `range(N+1) × range(N+1)`.  Summing the nonnegative product
+`‖Δ_j f x‖ · ‖Δ_k g x‖` over the filter is therefore dominated by the
+full double sum, which factors as `(∑_j ‖Δ_j f x‖) · (∑_k ‖Δ_k g x‖)`.
+This eliminates the `(N+1)²` cardinality factor entirely from the
+remainder bound: the final bound is `Mf · Mg`, uniform in `N`. -/
+
+/-- **Remainder piece bounded by a double cumulative product.**  The
+triangle-bounded remainder sum over the diagonal band is dominated by
+the full product `(∑_j ‖Δ_j f x‖) · (∑_k ‖Δ_k g x‖)`. -/
+theorem norm_remainderPartial_le_by_cumulative_product
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ≤
+      (∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) *
+        ∑ k ∈ Finset.range (N + 1), ‖lpProjector k g x‖ := by
+  refine (norm_remainderPartial_le N f g x).trans ?_
+  -- Product of sums = double sum over `range × range`.
+  have hprod :
+      (∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) *
+          ∑ k ∈ Finset.range (N + 1), ‖lpProjector k g x‖ =
+        ∑ p ∈ Finset.range (N + 1) ×ˢ Finset.range (N + 1),
+          ‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖ := by
+    rw [Finset.sum_product]
+    rw [Finset.sum_mul_sum]
+  rw [hprod]
+  -- Filter ⊆ product; nonneg terms; conclude via sum-subset monotonicity.
+  refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+  · exact Finset.filter_subset _ _
+  · intro p _ _
+    exact mul_nonneg (norm_nonneg _) (norm_nonneg _)
+
+/-- **Remainder bounded by `Mf · Mg`, uniformly in `N`.**  Given
+cumulative shell-sum bounds `hf`, `hg` (the same hypotheses used by the
+paraproduct-piece uniform bound), the remainder is bounded pointwise by
+`Mf · Mg` with no cardinality factor. -/
+theorem norm_remainderPartial_le_uniform
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Mf Mg : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) :
+    ‖remainderPartial N f g x‖ ≤ Mf * Mg := by
+  refine (norm_remainderPartial_le_by_cumulative_product N f g x).trans ?_
+  -- Goal: (∑ f) * (∑ g) ≤ Mf * Mg.
+  have hg_nn : (0 : ℝ) ≤ ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ :=
+    Finset.sum_nonneg (fun _ _ => norm_nonneg _)
+  calc (∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) *
+          ∑ k ∈ Finset.range (N + 1), ‖lpProjector k g x‖
+      ≤ Mf * ∑ k ∈ Finset.range (N + 1), ‖lpProjector k g x‖ :=
+        mul_le_mul_of_nonneg_right hf hg_nn
+    _ ≤ Mf * Mg := mul_le_mul_of_nonneg_left hg hMf
+
+/-! ### Fully-uniform-in-`N` quantitative Kato–Ponce commutator
+
+Combining the uniform-in-`N` paraproduct bound
+`norm_paraproductPartial_le_hs_uniform` with the uniform-in-`N` remainder
+bound `norm_remainderPartial_le_uniform` yields a Kato–Ponce commutator
+estimate in which every explicit factor depends only on `s` (via the
+prefactor `C_s = 4 · (1 - 2^(-(s-1)))⁻¹`) and the caller-supplied
+`L∞`/tail bounds `Mf, Mg, Sfg, T`.  No `(N+1)`-growing factor appears.
+
+The `Sfg` and `T` fields remain abstract hypotheses to be discharged by
+the caller from ambient Sobolev-embedding bounds (see e.g.
+`norm_le_tsum_mFourierCoeff` in `KatoPonce/SobolevEmbedding.lean`). -/
+
+/-- **Fully-uniform-in-`N` Kato–Ponce partial commutator bound.**
+
+Every explicit prefactor depends only on `s` and the caller-supplied
+bounds `Mf, Mg, Sfg, T`:
+
+`‖partialCommutator N f g x‖ ≤
+   Sfg + Mf · C_s · √(Ḣˢ_g) + Mg · C_s · √(Ḣˢ_f) + Mf · Mg + T`
+
+with `C_s := 4·(1-2^(-(s-1)))⁻¹`.  Dropping the `(N+1)²`-scale cardinality
+from `norm_partialCommutator_le_hs_uniform`. -/
+theorem norm_partialCommutator_le_hs_fully_uniform
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) (s : ℝ) (hs : 1 < s)
+    {Mf Mg Sfg T : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) (hMg : 0 ≤ Mg)
+    (hfsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2))
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2))
+    (hSfg : ‖lpPartialSum N (fun t => f t * g t) x‖ ≤ Sfg)
+    (hTail : ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤ T) :
+    ‖partialCommutator N f g x‖ ≤
+      Sfg
+        + Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s g)
+        + Mg * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s f)
+        + Mf * Mg + T := by
+  have hbony := norm_partialCommutator_le_bony N f g x
+  have hpp := norm_paraproductPartial_le_hs_uniform N s hs f g x hf hMf hgsum
+  have hps := norm_paraproductPartial_le_hs_uniform N s hs g f x hg hMg hfsum
+  have hR := norm_remainderPartial_le_uniform N f g x hf hg hMf
+  linarith
+
 end FourierAnalysis
