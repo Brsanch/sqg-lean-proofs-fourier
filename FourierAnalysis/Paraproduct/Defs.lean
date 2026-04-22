@@ -67,4 +67,28 @@ lemma paraproductPartial_eq_double_sum (N : ℕ) (f g : 𝕋² → ℂ) (x : �
   rw [show M - 3 + 1 = M - 2 by
         rw [Finset.mem_Ico] at hM; omega]
 
+/-- The paraproduct as a filtered sum over `range(N+1) × range(N+1)`, with
+filter predicate `p.1 + 3 ≤ p.2` (the "low × high" index set). -/
+lemma paraproductPartial_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N f g x =
+      ∑ p ∈ ((Finset.range (N + 1)).product (Finset.range (N + 1))).filter
+              (fun p => p.1 + 3 ≤ p.2),
+        lpProjector p.1 f x * lpProjector p.2 g x := by
+  rw [paraproductPartial_eq_double_sum, Finset.sum_sigma']
+  refine Finset.sum_nbij'
+    (fun y => (y.2, y.1))
+    (fun q => ⟨q.2, q.1⟩)
+    ?_ ?_ ?_ ?_ ?_
+  · intro y hy
+    simp only [Finset.mem_sigma, Finset.mem_Ico, Finset.mem_range] at hy
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
+    omega
+  · intro q hq
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hq
+    simp only [Finset.mem_sigma, Finset.mem_Ico, Finset.mem_range]
+    omega
+  · intro _ _; rfl
+  · intro _ _; rfl
+  · intro _ _; rfl
+
 end FourierAnalysis
