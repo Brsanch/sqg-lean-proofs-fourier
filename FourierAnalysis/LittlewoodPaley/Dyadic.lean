@@ -197,4 +197,12 @@ lemma lInfBall_eq_biUnion_dyadicAnnulus (N : ℕ) :
         omega
       rw [← dyadicAnnulus_union_lInfBall N, ih, hins, Finset.biUnion_insert]
 
+/-- The dyadic shells form a pairwise-disjoint family indexed by ℕ. -/
+lemma dyadicAnnulus_pairwiseDisjoint (N : ℕ) :
+    Set.PairwiseDisjoint (↑(Finset.range (N + 1)) : Set ℕ) dyadicAnnulus := by
+  intro M _ M' _ hMM'
+  rcases lt_or_gt_of_ne hMM' with h | h
+  · exact dyadicAnnulus_disjoint_of_lt h
+  · exact (dyadicAnnulus_disjoint_of_lt h).symm
+
 end FourierAnalysis
