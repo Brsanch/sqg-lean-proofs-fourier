@@ -1,0 +1,50 @@
+name: Lean Action CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Force Node 24 for transitive JS actions pending lean-action's
+      # actions/cache bump; see the sqg-lean-proofs workflow comment.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: leanprover/lean-action@v1
+      - uses: leanprover-community/docgen-action@v1
+        continue-on-error: true
+        timeout-minutes: 10
+
+  dedupe-caches:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    permissions:
+      actions: write
+    steps:
+      - name: Prune caches (keep newest, drop rest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ids=$(gh api "/repos/$REPO/actions/caches?per_page=100" \
+            --jq '.actions_caches | sort_by(.created_at) | reverse | .[1:] | .[].id')
+          if [ -z "$ids" ]; then
+            echo "No caches to prune (≤1 present)."
+            exit 0
+          fi
+          echo "$ids" | while read id; do
+            echo "Deleting cache id=$id"
+            gh api -X DELETE "/repos/$REPO/actions/caches/$id" || true
+          done
