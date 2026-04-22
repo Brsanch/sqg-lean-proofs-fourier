@@ -34,4 +34,12 @@ theorem norm_partialCommutator_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) 
   unfold partialCommutator
   exact norm_sub_le _ _
 
+/-- If `g` is the zero function, the partial commutator vanishes pointwise. -/
+lemma partialCommutator_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N f (0 : 𝕋² → ℂ) x = 0 := by
+  unfold partialCommutator
+  have h1 : (fun t : 𝕋² => f t * (0 : 𝕋² → ℂ) t) = 0 := by funext t; simp
+  rw [h1]
+  simp [lpPartialSum, lpProjector]
+
 end FourierAnalysis
