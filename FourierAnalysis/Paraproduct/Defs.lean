@@ -29,4 +29,21 @@ noncomputable def remainderPartial (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
           (fun p => Nat.dist p.1 p.2 ≤ 2),
     lpProjector p.1 f x * lpProjector p.2 g x
 
+/-- The paraproduct is zero when truncated below level 3 (empty index set). -/
+lemma paraproductPartial_of_lt_three {N : ℕ} (hN : N < 3) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N f g x = 0 := by
+  unfold paraproductPartial
+  rw [Finset.Ico_eq_empty_of_le (by omega), Finset.sum_empty]
+
+/-- Recursive step: the paraproduct at level `N+1` adds the `(N+1)`-th dyadic term. -/
+lemma paraproductPartial_succ {N : ℕ} (hN : 3 ≤ N + 1) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial (N + 1) f g x =
+      paraproductPartial N f g x +
+        lpPartialSum (N + 1 - 3) f x * lpProjector (N + 1) g x := by
+  unfold paraproductPartial
+  rw [show Finset.Ico 3 (N + 1 + 1) = insert (N + 1) (Finset.Ico 3 (N + 1)) from ?_,
+      Finset.sum_insert (by simp)]
+  · ring
+  · ext x; simp [Finset.mem_Ico, Finset.mem_insert]; omega
+
 end FourierAnalysis
