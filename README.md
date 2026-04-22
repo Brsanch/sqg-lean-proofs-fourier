@@ -12,31 +12,40 @@ This package is **upstream of several PDE projects**:
 - (Planned) Euler regularity classical content.
 - (Planned) MHD classical content.
 
-## Status — SKELETON
+## Status
 
-All source files are placeholder stubs.  The development plan is
-documented in each file's header comment.
+**1492 LOC, CI green.**  Core Littlewood–Paley, Bony paraproduct,
+and homogeneous Sobolev infrastructure in place.  Remaining work
+targets `L²` paraproduct bounds, the full Kato–Ponce commutator, and
+downstream plumbing in `sqg-lean-proofs`.
 
-**Total planned content:** ~1500 LOC across three major modules.
-
-## Module layout
+## Module contents
 
 ```
-FourierAnalysis.lean
 FourierAnalysis/
-  LittlewoodPaley.lean              -- aggregator
   LittlewoodPaley/
-    Dyadic.lean                     -- Δ_N, S_N, L^p bounds  (~600 LOC)
-    Bernstein.lean                  -- Bernstein inequality  (~150 LOC)
-  Paraproduct.lean                  -- aggregator
+    Dyadic.lean           -- 𝕋² = UnitAddTorus (Fin 2), ℓ∞ lattice,
+                             dyadic annuli/balls, Fourier projector
+                             Δ_N and partial sum S_N, pointwise
+                             convergence from mathlib's HasSum.
+    Bernstein.lean        -- triangle, Cauchy–Schwarz, and explicit
+                             4^(N+1) / sqrt forms of the Bernstein
+                             bound; Parseval bridge via Summable.
   Paraproduct/
-    Defs.lean                       -- T_f g, R(f,g), Bony id (~200 LOC)
-    Bounds.lean                     -- three classical bounds (~400 LOC)
-  KatoPonce.lean                    -- aggregator
+    Defs.lean             -- paraproductPartial N f g,
+                             remainderPartial N f g, ordered +
+                             filtered sum forms, and Bony's partial
+                             decomposition f·g = T_f g + T_g f + R.
+    Bounds.lean           -- triangle, CS-form, and vanishing
+                             criteria on paraproduct / remainder.
   KatoPonce/
-    Product.lean                    -- Kato–Ponce product     (~200 LOC)
-    Commutator.lean                 -- Kato–Ponce commutator  (~500 LOC)
-    SobolevEmbedding.lean           -- Ḣˢ ⊂ L∞ for s > d/2    (~200 LOC)
+    Product.lean          -- structural product bounds.
+    Commutator.lean       -- partialCommutator N f g with
+                             triangle, projector-level, and
+                             antisymmetry identities.
+    SobolevEmbedding.lean -- hsSeminormSq, lattice zeta, geometric
+                             convergence at s > 1, and the triangle
+                             version of Ḣˢ ⊂ L∞.
 ```
 
 ## Downstream consumption
@@ -49,11 +58,8 @@ path = "../sqg-lean-proofs-fourier"  # or git URL
 ```
 
 ```lean
--- downstream usage
 import FourierAnalysis.KatoPonce.Commutator
 open FourierAnalysis
-
--- kato_ponce_commutator : ‖[Jˢ, f·∇]g‖_{L²} ≤ …
 ```
 
 ## Build
