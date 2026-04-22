@@ -182,17 +182,14 @@ theorem norm_apply_le_tsum_mFourierCoeff
       _ = ‖mFourierCoeff f k‖ := by ring
   rw [← hs.tsum_eq]
   refine (norm_tsum_le_tsum_norm hnorm_sum).trans ?_
-  apply tsum_le_tsum
-  · intro k
-    rw [norm_smul]
-    have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 :=
-      calc ‖(mFourier k : 𝕋² → ℂ) x‖
-          ≤ ‖mFourier (d := Fin 2) k‖ := (mFourier k).norm_coe_le_norm x
-        _ = 1 := mFourier_norm
-    calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
-        ≤ ‖mFourierCoeff f k‖ * 1 := mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
-      _ = ‖mFourierCoeff f k‖ := by ring
-  · exact hnorm_sum
-  · exact hsum.norm
+  refine Summable.tsum_le_tsum (fun k => ?_) hnorm_sum hsum.norm
+  rw [norm_smul]
+  have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 :=
+    calc ‖(mFourier k : 𝕋² → ℂ) x‖
+        ≤ ‖mFourier (d := Fin 2) k‖ := (mFourier k).norm_coe_le_norm x
+      _ = 1 := mFourier_norm
+  calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
+      ≤ ‖mFourierCoeff f k‖ * 1 := mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
+    _ = ‖mFourierCoeff f k‖ := by ring
 
 end FourierAnalysis
