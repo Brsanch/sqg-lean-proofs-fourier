@@ -74,8 +74,9 @@ lemma partialCommutator_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g :
   unfold partialCommutator
   have h1 : (fun t : 𝕋² => f t * (c • g) t) = c • (fun t : 𝕋² => f t * g t) := by
     funext t; simp [Pi.smul_apply, smul_eq_mul]; ring
-  rw [h1, lpPartialSum_smul]
-  simp [Pi.smul_apply, smul_eq_mul, mul_sub]
+  rw [h1]
+  simp_rw [lpPartialSum_smul]
+  simp [smul_eq_mul, mul_sub]
   ring
 
 end FourierAnalysis
