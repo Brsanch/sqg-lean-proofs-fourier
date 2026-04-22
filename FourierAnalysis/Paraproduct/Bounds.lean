@@ -55,6 +55,22 @@ theorem sq_norm_paraproductPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋
         pow_le_pow_left₀ h2 h1 2
     _ ≤ _ := sq_sum_le_card_mul_sum_sq
 
+/-- The paraproduct filter is a subset of `range(N+1)²`, hence bounded by `(N+1)²`. -/
+lemma card_paraproduct_filter_le (N : ℕ) :
+    ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+        (fun p => p.1 + 3 ≤ p.2)).card ≤ (N + 1) ^ 2 := by
+  refine (Finset.card_le_card (Finset.filter_subset _ _)).trans ?_
+  rw [Finset.card_product, Finset.card_range]
+  exact le_of_eq (by ring)
+
+/-- The remainder filter is a subset of `range(N+1)²`, hence bounded by `(N+1)²`. -/
+lemma card_remainder_filter_le (N : ℕ) :
+    ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+        (fun p => Nat.dist p.1 p.2 ≤ 2)).card ≤ (N + 1) ^ 2 := by
+  refine (Finset.card_le_card (Finset.filter_subset _ _)).trans ?_
+  rw [Finset.card_product, Finset.card_range]
+  exact le_of_eq (by ring)
+
 /-- Cauchy–Schwarz form on the remainder. -/
 theorem sq_norm_remainderPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     ‖remainderPartial N f g x‖ ^ 2 ≤
