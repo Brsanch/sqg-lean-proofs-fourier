@@ -306,6 +306,29 @@ lemma lpPartialSum_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     funext t; simp
   rw [h, lpPartialSum_smul]; simp
 
+open UnitAddTorus in
+/-- Any finite set `S ⊆ ℤ²` is eventually contained in the ball `lInfBall (2^N)`
+for sufficiently large `N`.  This is the cofinality property that drives
+the convergence `lpPartialSum N f x → f x` as `N → ∞` when the Fourier
+series converges. -/
+lemma exists_lInfBall_contains (S : Finset (Fin 2 → ℤ)) :
+    ∃ N : ℕ, S ⊆ lInfBall (2 ^ N) := by
+  rcases S.eq_empty_or_nonempty with hS | hS
+  · refine ⟨0, ?_⟩
+    rw [hS]
+    exact Finset.empty_subset _
+  · -- Take N large enough that 2^N > max ℓ∞-norm of elements in S.
+    set M : ℕ := (S.image lInfNorm).max' (hS.image _)
+    use M + 1
+    intro k hk
+    rw [mem_lInfBall]
+    have hkM : lInfNorm k ≤ M :=
+      Finset.le_max' _ _ (Finset.mem_image_of_mem _ hk)
+    have hpow : M < 2 ^ (M + 1) := by
+      calc M < M + 1 := Nat.lt_succ_self _
+        _ ≤ 2 ^ (M + 1) := Nat.lt_two_pow_self.le
+    omega
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum
