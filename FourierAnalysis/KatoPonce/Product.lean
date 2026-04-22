@@ -15,6 +15,7 @@ themselves live in `FourierAnalysis.Paraproduct.Bounds`.
 -/
 
 import FourierAnalysis.Paraproduct.Bounds
+import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
 
