@@ -142,15 +142,20 @@ lemma card_lInfBall_le (R : ℕ) : (lInfBall R).card ≤ (2 * R) ^ 2 := by
       ≤ (2 * R) * (2 * R) := Nat.mul_le_mul h h
     _ = (2 * R) ^ 2 := by ring
 
+/-- Auxiliary: `(2^m)^2 = 4^m` in ℕ. -/
+private lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := by
+  induction m with
+  | zero => rfl
+  | succ m ih => rw [pow_succ, pow_succ, mul_pow, ih]
+
 /-- Dyadic shell size is `O(4^N)` uniformly (needed for Bernstein). -/
 lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
-    (dyadicAnnulus (N + 1)).card ≤ 4 ^ (N + 2) := by
+    (dyadicAnnulus (N + 1)).card ≤ 4 * 4 ^ (N + 1) := by
   calc (dyadicAnnulus (N + 1)).card
       ≤ (lInfBall (2 ^ (N + 1))).card := card_dyadicAnnulus_succ_le N
     _ ≤ (2 * 2 ^ (N + 1)) ^ 2 := card_lInfBall_le _
-    _ = 4 ^ (N + 2) := by
-        rw [show (2 * 2 ^ (N + 1) : ℕ) = 2 ^ (N + 2) by ring]
-        rw [show (4 : ℕ) = 2 ^ 2 from rfl, ← pow_mul]
-        ring_nf
+    _ = 4 * 4 ^ (N + 1) := by
+        rw [mul_pow, two_pow_sq_eq_four_pow]
+        rfl
 
 end FourierAnalysis
