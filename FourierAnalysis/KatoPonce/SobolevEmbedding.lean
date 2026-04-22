@@ -40,7 +40,13 @@ lemma hsSeminormSq_ge_term (s : ℝ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ)
       (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
     (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤ hsSeminormSq s f := by
   unfold hsSeminormSq
-  exact le_tsum hsum k (fun _ _ =>
+  have hsingleton :
+      (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 =
+      ∑ k' ∈ ({k} : Finset _),
+        (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2 := by
+    simp
+  rw [hsingleton]
+  exact hsum.sum_le_tsum _ (fun _ _ =>
     mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (sq_nonneg _))
 
 /-- For positive `s`, the `k = 0` term vanishes in `hsSeminormSq`; the sum
