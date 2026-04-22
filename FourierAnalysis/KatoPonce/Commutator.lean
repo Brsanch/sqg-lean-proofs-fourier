@@ -40,6 +40,10 @@ lemma partialCommutator_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold partialCommutator
   have h1 : (fun t : 𝕋² => f t * (0 : 𝕋² → ℂ) t) = 0 := by funext t; simp
   rw [h1]
-  simp [lpPartialSum, lpProjector]
+  have hmF : ∀ k : Fin 2 → ℤ, mFourierCoeff (0 : 𝕋² → ℂ) k = 0 := by
+    intro k
+    unfold mFourierCoeff
+    simp
+  simp [lpPartialSum, lpProjector, hmF]
 
 end FourierAnalysis
