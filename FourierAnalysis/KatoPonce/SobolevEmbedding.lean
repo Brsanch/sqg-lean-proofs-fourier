@@ -63,18 +63,6 @@ lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
   simp_rw [h]
   exact MeasureTheory.integral_smul c _
 
-/-- The 2D Fourier coefficient is additive in the function argument, provided
-both integrands are integrable. -/
-lemma mFourierCoeff_add (f g : 𝕋² → ℂ) (k : Fin 2 → ℤ)
-    (hf : MeasureTheory.Integrable (fun t => mFourier (-k) t • f t))
-    (hg : MeasureTheory.Integrable (fun t => mFourier (-k) t • g t)) :
-    mFourierCoeff (f + g) k = mFourierCoeff f k + mFourierCoeff g k := by
-  unfold mFourierCoeff
-  have h : ∀ t : 𝕋², mFourier (-k) t • ((f + g) t) =
-      mFourier (-k) t • f t + mFourier (-k) t • g t := by
-    intro t; rw [Pi.add_apply, smul_add]
-  simp_rw [h]
-  exact MeasureTheory.integral_add hf hg
 
 /-- The Ḣˢ seminorm of the zero function vanishes. -/
 lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := by
