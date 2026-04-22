@@ -242,6 +242,25 @@ lemma lpProjector_zero_eq_mFourierCoeff_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
       Finset.sum_singleton, mFourier_zero]
   simp
 
+open UnitAddTorus in
+/-- The 2D Fourier coefficient of the zero function vanishes at every mode. -/
+lemma mFourierCoeff_zero_fn (k : Fin 2 → ℤ) :
+    mFourierCoeff (0 : 𝕋² → ℂ) k = 0 := by
+  unfold mFourierCoeff
+  simp
+
+open UnitAddTorus in
+/-- The 2D Fourier coefficient is ℂ-linear in the function argument
+(scalar-multiplication case). -/
+lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
+    mFourierCoeff (c • f) k = c • mFourierCoeff f k := by
+  unfold mFourierCoeff
+  have h : ∀ t : 𝕋², mFourier (-k) t • ((c • f) t) = c • (mFourier (-k) t • f t) := by
+    intro t
+    rw [Pi.smul_apply, smul_comm]
+  simp_rw [h]
+  exact MeasureTheory.integral_smul c _
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum

@@ -46,22 +46,6 @@ lemma latticeZetaSq_nonneg (s : ℝ) : 0 ≤ latticeZetaSq s := by
   · exact le_refl _
   · exact Real.rpow_nonneg (Nat.cast_nonneg _) _
 
-/-- The 2D Fourier coefficient of the zero function vanishes at every mode. -/
-lemma mFourierCoeff_zero_fn (k : Fin 2 → ℤ) :
-    mFourierCoeff (0 : 𝕋² → ℂ) k = 0 := by
-  unfold mFourierCoeff
-  simp
-
-/-- The 2D Fourier coefficient is ℂ-linear in the function argument
-(scalar-multiplication case). -/
-lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
-    mFourierCoeff (c • f) k = c • mFourierCoeff f k := by
-  unfold mFourierCoeff
-  have h : ∀ t : 𝕋², mFourier (-k) t • ((c • f) t) = c • (mFourier (-k) t • f t) := by
-    intro t
-    rw [Pi.smul_apply, smul_comm]
-  simp_rw [h]
-  exact MeasureTheory.integral_smul c _
 
 
 /-- The Ḣˢ seminorm of the zero function vanishes. -/
