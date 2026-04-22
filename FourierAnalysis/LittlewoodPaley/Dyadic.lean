@@ -160,4 +160,34 @@ lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
     _ = 4 * 4 ^ (N + 1) := by
         rw [mul_pow, two_pow_sq_eq_four_pow]; norm_num
 
+/-! ### Ball decomposition
+
+Every ball `lInfBall (2^{N+1})` splits as the dyadic shell at level `N+1`
+together with the preceding ball.  This identity is the structural
+basis of the telescoping sum `f = lim_N Σ_{j ≤ N} Δ_j f`. -/
+
+lemma dyadicAnnulus_union_lInfBall (N : ℕ) :
+    dyadicAnnulus (N + 1) ∪ lInfBall (2 ^ N) = lInfBall (2 ^ (N + 1)) := by
+  ext k
+  rw [Finset.mem_union, mem_dyadicAnnulus_succ, mem_lInfBall, mem_lInfBall]
+  have h : (2 : ℕ) ^ N ≤ 2 ^ (N + 1) :=
+    Nat.pow_le_pow_right (by norm_num) (Nat.le_succ N)
+  constructor
+  · rintro (⟨_, h2⟩ | h2)
+    · exact h2
+    · exact lt_of_lt_of_le h2 h
+  · intro h1
+    by_cases h2 : lInfNorm k < 2 ^ N
+    · exact Or.inr h2
+    · exact Or.inl ⟨by omega, h1⟩
+
+/-- The dyadic shell at level `N+1` and the preceding ball are disjoint. -/
+lemma disjoint_dyadicAnnulus_lInfBall (N : ℕ) :
+    Disjoint (dyadicAnnulus (N + 1)) (lInfBall (2 ^ N)) := by
+  rw [Finset.disjoint_left]
+  intro k hkA hkB
+  rw [mem_dyadicAnnulus_succ] at hkA
+  rw [mem_lInfBall] at hkB
+  omega
+
 end FourierAnalysis
