@@ -232,6 +232,7 @@ lemma lpPartialSum_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold lpPartialSum
   simp
 
+open UnitAddTorus in
 /-- The zeroth dyadic block is the DC component `f̂(0)`, since
 `dyadicAnnulus 0 = {0}` and `mFourier 0 = 1`. -/
 lemma lpProjector_zero_eq_mFourierCoeff_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
