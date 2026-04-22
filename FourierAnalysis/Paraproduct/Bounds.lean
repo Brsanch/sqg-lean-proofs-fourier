@@ -124,4 +124,31 @@ theorem sq_norm_remainderPartial_loose_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 
   · exact_mod_cast card_remainder_filter_le N
   · exact Finset.sum_nonneg (fun _ _ => sq_nonneg _)
 
+/-- If both factor sequences are zero on all shells, the paraproduct vanishes. -/
+lemma paraproductPartial_eq_zero_of_lpProjector_zero
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    (hf : ∀ j, j ≤ N → lpProjector j f x = 0) :
+    paraproductPartial N f g x = 0 := by
+  unfold paraproductPartial
+  refine Finset.sum_eq_zero (fun M hM => ?_)
+  rw [Finset.mem_Ico] at hM
+  have : lpPartialSum (M - 3) f x = 0 := by
+    unfold lpPartialSum
+    refine Finset.sum_eq_zero (fun j hj => ?_)
+    rw [Finset.mem_range] at hj
+    exact hf j (by omega)
+  rw [this, zero_mul]
+
+/-- If `g`'s dyadic projections vanish up to level `N`, the remainder vanishes. -/
+lemma remainderPartial_eq_zero_of_lpProjector_zero_right
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    (hg : ∀ j, j ≤ N → lpProjector j g x = 0) :
+    remainderPartial N f g x = 0 := by
+  unfold remainderPartial
+  refine Finset.sum_eq_zero (fun p hp => ?_)
+  rw [Finset.mem_filter, Finset.mem_product, Finset.mem_range, Finset.mem_range] at hp
+  obtain ⟨⟨_, hp2⟩, _⟩ := hp
+  rw [hg p.2 (by omega)]
+  ring
+
 end FourierAnalysis
