@@ -36,16 +36,20 @@ theorem norm_partialCommutator_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) 
   exact norm_sub_le _ _
 
 /-- If `g` is the zero function, the partial commutator vanishes pointwise. -/
-lemma partialCommutator_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+@[simp] lemma partialCommutator_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     partialCommutator N f (0 : 𝕋² → ℂ) x = 0 := by
   unfold partialCommutator
   have h1 : (fun t : 𝕋² => f t * (0 : 𝕋² → ℂ) t) = 0 := by funext t; simp
   rw [h1]
-  have hmF : ∀ k : Fin 2 → ℤ, mFourierCoeff (0 : 𝕋² → ℂ) k = 0 := by
-    intro k
-    unfold mFourierCoeff
-    simp
-  simp [lpPartialSum, lpProjector, hmF]
+  simp
+
+/-- If `f` is the zero function, the partial commutator vanishes pointwise. -/
+@[simp] lemma partialCommutator_zero_left (N : ℕ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N (0 : 𝕋² → ℂ) g x = 0 := by
+  unfold partialCommutator
+  have h1 : (fun t : 𝕋² => (0 : 𝕋² → ℂ) t * g t) = 0 := by funext t; simp
+  rw [h1]
+  simp
 
 /-- Structural Kato–Ponce commutator bound: given pointwise bounds on
 `S_N(f·g)` and on `f · S_N(g)`, the partial commutator is bounded by
