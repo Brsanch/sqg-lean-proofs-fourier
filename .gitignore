@@ -4,3 +4,4 @@ lake-manifest.json.bak
 *.olean
 build/
 .DS_Store
+CLAUDE.md

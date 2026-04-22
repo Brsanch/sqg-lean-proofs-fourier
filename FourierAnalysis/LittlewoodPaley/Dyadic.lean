@@ -3,28 +3,16 @@ Copyright (c) 2026 Bryan Sanchez. All rights reserved.
 Released under MIT license.
 Authors: Bryan Sanchez
 
-Dyadic Fourier projectors on 𝕋².
+# Dyadic lattice decomposition on `ℤ²`
 
-**Contents (planned, ~600 LOC):**
-- `dyadicAnnulus N : Finset (Fin 2 → ℤ)` — lattice annulus
-  `{k : 2^{N-1} ≤ ‖k‖_{ℓ∞} < 2^N}` (with base case `N = 0` → `{0}`).
-- `lpProjector N f` — Fourier truncation of `f ∈ L²(𝕋²)` to
-  `dyadicAnnulus N`.
-- `lpPartialSum N f := Σ_{k ≤ N} lpProjector k f`.
-- L^p bounds `‖Δ_N f‖_{L^p} ≤ C · ‖f‖_{L^p}` for `p ∈ [1, ∞]`.
-- Fourier-side computation: `(Δ_N f)̂(m) = 1_{m ∈ annulus N} · f̂(m)`.
+The ℓ∞ norm on the integer lattice `ℤ²`, open balls
+`lInfBall R = {k : ‖k‖_∞ < R}`, and dyadic annuli
+`{k : 2^{N-1} ≤ ‖k‖_∞ < 2^N}`.
 
-### Phase 1 — this file (current)
-
-- ℓ∞ norm on the integer lattice `ℤ²`.
-- Open ℓ∞ balls `lInfBall R = {k : ‖k‖_∞ < R}` as `Finset`s.
-- Dyadic annuli as set differences of balls.
-- Membership characterisation and basic cardinality bound.
-
-Measure-theoretic structure on `𝕋² = Fin 2 → AddCircle (1 : ℝ)` is
-inherited from mathlib's `Pi.measureSpace` + `AddCircle.measureSpace`;
-downstream files need only `open scoped FourierAnalysis` to pick up
-the `𝕋²` notation.
+The 2D torus `𝕋² = Fin 2 → AddCircle (1 : ℝ)` inherits its
+measure-theoretic structure from mathlib via `Pi.measureSpace`
+combined with `AddCircle.measureSpace`; downstream files need only
+`open scoped FourierAnalysis` to pick up the `𝕋²` notation.
 -/
 
 import Mathlib
@@ -104,8 +92,7 @@ lemma dyadicAnnulus_disjoint_of_lt {M N : ℕ} (hMN : M < N) :
   rw [Finset.disjoint_left]
   intro k hkM hkN
   rcases M with _ | M'
-  · -- M = 0 ⇒ k = 0; shell N ≥ 1 requires ‖k‖_∞ ≥ 2^{N-1} ≥ 1, contradiction.
-    rw [mem_dyadicAnnulus_zero] at hkM
+  · rw [mem_dyadicAnnulus_zero] at hkM
     subst hkM
     rcases N with _ | N'
     · exact absurd hMN (lt_irrefl 0)
@@ -128,10 +115,7 @@ lemma card_dyadicAnnulus_succ_le (N : ℕ) :
   simp only [dyadicAnnulus, Finset.mem_sdiff] at hk
   exact hk.1
 
-/-! ### Lattice cardinality closed forms
-
-Each coordinate factor `Finset.Ioo (-R, R) ⊂ ℤ` has cardinality `2R - 1`
-for `R ≥ 1` (and `0` for `R = 0`).  The 2D ball is the product. -/
+/-! ### Cardinality bounds -/
 
 lemma card_lInfBall_le (R : ℕ) : (lInfBall R).card ≤ (2 * R) ^ 2 := by
   rw [lInfBall, Fintype.card_piFinset, Fin.prod_univ_two]
@@ -151,7 +135,7 @@ private lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := 
         rw [pow_succ]; ring
       rw [step, ih, ← pow_succ]
 
-/-- Dyadic shell size is `O(4^N)` uniformly (needed for Bernstein). -/
+/-- Dyadic shell size is `O(4^N)`. -/
 lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
     (dyadicAnnulus (N + 1)).card ≤ 4 * 4 ^ (N + 1) := by
   calc (dyadicAnnulus (N + 1)).card
@@ -160,11 +144,7 @@ lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
     _ = 4 * 4 ^ (N + 1) := by
         rw [mul_pow, two_pow_sq_eq_four_pow]; norm_num
 
-/-! ### Ball decomposition
-
-Every ball `lInfBall (2^{N+1})` splits as the dyadic shell at level `N+1`
-together with the preceding ball.  This identity is the structural
-basis of the telescoping sum `f = lim_N Σ_{j ≤ N} Δ_j f`. -/
+/-! ### Ball decomposition -/
 
 lemma dyadicAnnulus_union_lInfBall (N : ℕ) :
     dyadicAnnulus (N + 1) ∪ lInfBall (2 ^ N) = lInfBall (2 ^ (N + 1)) := by
