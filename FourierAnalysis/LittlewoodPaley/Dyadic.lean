@@ -146,7 +146,12 @@ lemma card_lInfBall_le (R : ℕ) : (lInfBall R).card ≤ (2 * R) ^ 2 := by
 private lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := by
   induction m with
   | zero => rfl
-  | succ m ih => rw [pow_succ, pow_succ, mul_pow, ih]
+  | succ m ih =>
+      calc ((2 : ℕ) ^ (m + 1)) ^ 2
+          = (2 ^ m * 2) ^ 2 := by rw [pow_succ]
+        _ = (2 ^ m) ^ 2 * 2 ^ 2 := by rw [mul_pow]
+        _ = 4 ^ m * 4 := by rw [ih]
+        _ = 4 ^ (m + 1) := by rw [← pow_succ]
 
 /-- Dyadic shell size is `O(4^N)` uniformly (needed for Bernstein). -/
 lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
