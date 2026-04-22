@@ -18,6 +18,7 @@ in the limit `N → ∞` uses the Bony decomposition from
 
 import FourierAnalysis.Paraproduct.Bounds
 import FourierAnalysis.KatoPonce.Product
+import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
 
@@ -78,5 +79,16 @@ lemma partialCommutator_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g :
   simp_rw [lpPartialSum_smul]
   simp [smul_eq_mul, mul_sub]
   ring
+
+/-- Projector-level triangle bound on the partial commutator. -/
+theorem norm_partialCommutator_via_projectors (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖partialCommutator N f g x‖ ≤
+      (∑ j ∈ Finset.range (N + 1),
+          ‖lpProjector j (fun t => f t * g t) x‖) +
+        ‖f x‖ * (∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖) := by
+  refine (norm_partialCommutator_le N f g x).trans ?_
+  refine add_le_add (norm_lpPartialSum_le _ _ _) ?_
+  rw [norm_mul]
+  exact mul_le_mul_of_nonneg_left (norm_lpPartialSum_le _ _ _) (norm_nonneg _)
 
 end FourierAnalysis
