@@ -128,7 +128,7 @@ lemma card_lInfBall_le (R : ℕ) : (lInfBall R).card ≤ (2 * R) ^ 2 := by
     _ = (2 * R) ^ 2 := by ring
 
 /-- Auxiliary: `(2^m)^2 = 4^m` in ℕ. -/
-private lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := by
+lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := by
   induction m with
   | zero => rfl
   | succ m ih =>

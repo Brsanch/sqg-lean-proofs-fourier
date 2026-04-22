@@ -49,6 +49,15 @@ theorem sq_norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     _ ≤ (dyadicAnnulus N).card * ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ ^ 2 :=
         sq_sum_le_card_mul_sum_sq
 
+/-- `(2 * 2^m)^2 = 4 * 4^m` in ℝ. -/
+private lemma two_two_pow_sq_eq_four_four_pow (m : ℕ) :
+    ((2 * (2 : ℝ) ^ m)) ^ 2 = 4 * 4 ^ m := by
+  have h : ((2 : ℝ) ^ m) ^ 2 = 4 ^ m := by
+    exact_mod_cast two_pow_sq_eq_four_pow m
+  calc ((2 * (2 : ℝ) ^ m)) ^ 2
+      = 4 * ((2 : ℝ) ^ m) ^ 2 := by ring
+    _ = 4 * 4 ^ m := by rw [h]
+
 /-- Bernstein-type bound on the dyadic shell at level `N+1`:
 the squared pointwise value is controlled by `4^(N+2)` times the
 sum of squared Fourier moduli over the shell. -/
@@ -68,5 +77,25 @@ theorem sq_norm_lpProjector_succ_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) 
     _ ≤ (4 * 4 ^ (N + 1) : ℝ) *
           ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
         mul_le_mul_of_nonneg_right hcard hnn
+
+/-- Square-root form of the shell-level Bernstein bound. -/
+theorem norm_lpProjector_succ_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpProjector (N + 1) f x‖ ≤
+      (2 * 2 ^ (N + 1) : ℝ) *
+        Real.sqrt (∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
+  have hnn : (0 : ℝ) ≤ ‖lpProjector (N + 1) f x‖ := norm_nonneg _
+  have hC : (0 : ℝ) ≤ 2 * (2 : ℝ) ^ (N + 1) := by positivity
+  have hCsq : (0 : ℝ) ≤ (2 * (2 : ℝ) ^ (N + 1)) ^ 2 := sq_nonneg _
+  calc ‖lpProjector (N + 1) f x‖
+      = Real.sqrt (‖lpProjector (N + 1) f x‖ ^ 2) := (Real.sqrt_sq hnn).symm
+    _ ≤ Real.sqrt ((4 * 4 ^ (N + 1) : ℝ) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) :=
+        Real.sqrt_le_sqrt (sq_norm_lpProjector_succ_le N f x)
+    _ = Real.sqrt ((2 * (2 : ℝ) ^ (N + 1)) ^ 2 *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
+        rw [two_two_pow_sq_eq_four_four_pow]
+    _ = 2 * (2 : ℝ) ^ (N + 1) *
+          Real.sqrt (∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
+        rw [Real.sqrt_mul hCsq, Real.sqrt_sq hC]
 
 end FourierAnalysis
