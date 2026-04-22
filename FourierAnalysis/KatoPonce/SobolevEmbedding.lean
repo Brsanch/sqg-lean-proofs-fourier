@@ -57,8 +57,11 @@ lemma mFourierCoeff_zero_fn (k : Fin 2 → ℤ) :
 lemma mFourierCoeff_smul (c : ℂ) (f : 𝕋² → ℂ) (k : Fin 2 → ℤ) :
     mFourierCoeff (c • f) k = c • mFourierCoeff f k := by
   unfold mFourierCoeff
-  simp only [Pi.smul_apply, smul_comm (α := ℂ) c]
-  exact MeasureTheory.integral_smul _ _
+  have h : ∀ t : 𝕋², mFourier (-k) t • ((c • f) t) = c • (mFourier (-k) t • f t) := by
+    intro t
+    rw [Pi.smul_apply, smul_comm]
+  simp_rw [h]
+  exact MeasureTheory.integral_smul c _
 
 /-- The Ḣˢ seminorm of the zero function vanishes. -/
 lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := by
