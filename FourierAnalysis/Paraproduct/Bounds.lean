@@ -9,6 +9,7 @@ Pointwise and dyadic estimates for the Bony paraproduct and remainder.
 -/
 
 import FourierAnalysis.Paraproduct.Defs
+import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
 
@@ -150,5 +151,146 @@ lemma remainderPartial_eq_zero_of_lpProjector_zero_right
   obtain ⟨⟨_, hp2⟩, _⟩ := hp
   rw [hg p.2 (by omega)]
   ring
+
+/-! ### Parseval-style pointwise bounds via Bernstein
+
+The following lemmas control pointwise-squared values by Fourier-side
+sums of squared moduli, using the Bernstein-type bound
+`sq_norm_lpProjector_succ_le`.  They are the finite-level substitutes
+for the classical `∫ ‖S_N f‖² ≤ ∑ ‖f̂‖²` identity: the pointwise
+squared bound follows the same Cauchy–Schwarz structure, aggregated
+shell-by-shell. -/
+
+/-- Shell-indexed Bernstein: squared pointwise bound on `lpPartialSum N f x`
+in terms of the sum of per-shell cardinalities times per-shell squared
+Fourier moduli.  Aggregates `sq_norm_lpProjector_le` across all shells. -/
+theorem sq_norm_lpPartialSum_shell_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpPartialSum N f x‖ ^ 2 ≤
+      (N + 1 : ℕ) *
+        ∑ j ∈ Finset.range (N + 1),
+          (dyadicAnnulus j).card *
+            ∑ k ∈ dyadicAnnulus j, ‖mFourierCoeff f k‖ ^ 2 := by
+  refine (sq_norm_lpPartialSum_le N f x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun j _ => ?_)
+    exact sq_norm_lpProjector_le j f x
+  · exact_mod_cast Nat.zero_le _
+
+/-- AM–GM / Cauchy–Schwarz pointwise bound on a product of projector norms:
+`(‖Δ_a f x‖ · ‖Δ_b g x‖)² ≤ card(shell a) · card(shell b) · (∑_{shell a} ‖f̂‖²) · (∑_{shell b} ‖ĝ‖²)`.
+Product form of `sq_norm_lpProjector_le` on two independent shells. -/
+lemma sq_lpProjector_mul_lpProjector_le (a b : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    (‖lpProjector a f x‖ * ‖lpProjector b g x‖) ^ 2 ≤
+      ((dyadicAnnulus a).card * (dyadicAnnulus b).card : ℕ) *
+        ((∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) := by
+  have ha := sq_norm_lpProjector_le a f x
+  have hb := sq_norm_lpProjector_le b g x
+  have hna : (0 : ℝ) ≤ ‖lpProjector a f x‖ := norm_nonneg _
+  have hnb : (0 : ℝ) ≤ ‖lpProjector b g x‖ := norm_nonneg _
+  have hna2 : (0 : ℝ) ≤ ‖lpProjector a f x‖ ^ 2 := sq_nonneg _
+  have hsumA : (0 : ℝ) ≤
+      (dyadicAnnulus a).card * ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2 := by
+    have h1 : (0 : ℝ) ≤ ((dyadicAnnulus a).card : ℝ) := by exact_mod_cast Nat.zero_le _
+    have h2 : (0 : ℝ) ≤ ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2 :=
+      Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+    exact mul_nonneg h1 h2
+  calc (‖lpProjector a f x‖ * ‖lpProjector b g x‖) ^ 2
+      = ‖lpProjector a f x‖ ^ 2 * ‖lpProjector b g x‖ ^ 2 := by ring
+    _ ≤ ((dyadicAnnulus a).card *
+            ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ‖lpProjector b g x‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right ha (sq_nonneg _)
+    _ ≤ ((dyadicAnnulus a).card *
+            ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ((dyadicAnnulus b).card *
+            ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) :=
+          mul_le_mul_of_nonneg_left hb hsumA
+    _ = ((dyadicAnnulus a).card * (dyadicAnnulus b).card : ℕ) *
+          ((∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+            ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) := by
+        push_cast; ring
+
+/-- **L² paraproduct bound (Parseval form).**  The squared pointwise value of
+the paraproduct is controlled by a filtered sum over shell pairs `(a, b)`
+with `a + 3 ≤ b`, with per-pair Bernstein weights `card(shell_a) · card(shell_b)`
+and per-shell squared-Fourier moduli products.  Combines
+`sq_norm_paraproductPartial_loose_le` with
+`sq_lpProjector_mul_lpProjector_le`. -/
+theorem sq_norm_paraproductPartial_le_l2 (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => p.1 + 3 ≤ p.2),
+          ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+              ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2) := by
+  refine (sq_norm_paraproductPartial_loose_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun p _ => ?_)
+    exact sq_lpProjector_mul_lpProjector_le p.1 p.2 f g x
+  · exact_mod_cast Nat.zero_le _
+
+/-- **L² remainder bound (Parseval form).**  The squared pointwise value of
+the remainder is controlled by a filtered sum over shell pairs `(a, b)`
+with `Nat.dist a b ≤ 2`, with per-pair Bernstein weights. -/
+theorem sq_norm_remainderPartial_le_l2 (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2),
+          ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+              ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2) := by
+  refine (sq_norm_remainderPartial_loose_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun p _ => ?_)
+    exact sq_lpProjector_mul_lpProjector_le p.1 p.2 f g x
+  · exact_mod_cast Nat.zero_le _
+
+/-- **Bilinear L∞ × L² wrapper on the paraproduct.**  Under square-summability
+of the Fourier coefficients of `g`, each shell-squared moduli sum of `g`
+is bounded by the total tsum.  Combined with `sq_norm_paraproductPartial_le_l2`
+this yields an L² bound in the `g` factor, leaving the `f` factor expressed
+as a filtered sum of per-shell squared Fourier moduli weighted by cardinalities. -/
+theorem sq_norm_paraproductPartial_le_l2_g (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    (hg : Summable (fun m : Fin 2 → ℤ => ‖mFourierCoeff g m‖ ^ 2)) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        (∑' m : Fin 2 → ℤ, ‖mFourierCoeff g m‖ ^ 2) *
+          ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                  (fun p => p.1 + 3 ≤ p.2),
+            ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+              ∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2 := by
+  have htsum_nn : (0 : ℝ) ≤ ∑' m : Fin 2 → ℤ, ‖mFourierCoeff g m‖ ^ 2 :=
+    tsum_nonneg (fun _ => sq_nonneg _)
+  have hcardsq_nn : (0 : ℝ) ≤ ((N + 1) ^ 2 : ℕ) := by exact_mod_cast Nat.zero_le _
+  refine (sq_norm_paraproductPartial_le_l2 N f g x).trans ?_
+  -- Move the tsum out and bound each per-pair inner product.
+  rw [mul_assoc]
+  apply mul_le_mul_of_nonneg_left _ hcardsq_nn
+  -- Distribute the tsum factor into the sum, then compare pair-by-pair.
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum (fun p _ => ?_)
+  have hcardf_nn : (0 : ℝ) ≤
+      ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) := by
+    exact_mod_cast Nat.zero_le _
+  have hsumf_nn : (0 : ℝ) ≤ ∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2 :=
+    Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+  have hshell_g : ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2 ≤
+      ∑' m : Fin 2 → ℤ, ‖mFourierCoeff g m‖ ^ 2 :=
+    sum_shell_sq_mFourierCoeff_le_tsum g p.2 hg
+  calc
+    ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+        ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+          ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2)
+        ≤ ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+              ∑' m : Fin 2 → ℤ, ‖mFourierCoeff g m‖ ^ 2) := by
+          apply mul_le_mul_of_nonneg_left _ hcardf_nn
+          apply mul_le_mul_of_nonneg_left hshell_g hsumf_nn
+      _ = (∑' m : Fin 2 → ℤ, ‖mFourierCoeff g m‖ ^ 2) *
+          (((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) := by ring
 
 end FourierAnalysis
