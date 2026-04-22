@@ -158,4 +158,41 @@ theorem summable_shell_rpow_neg (s : ℝ) (hs : 1 < s) :
   · intro N
     exact sum_shell_rpow_neg_le_geometric N s hs_pos
 
+/-- Triangle form of Sobolev embedding: for continuous `f` with summable
+Fourier coefficients, `‖f(x)‖ ≤ ∑' k, ‖f̂(k)‖`.  Combined with
+`summable_shell_rpow_neg` for `s > 1` and Cauchy–Schwarz against the
+lattice zeta, this gives the classical `‖f‖_{L∞} ≤ C_s · ‖f‖_{Ḣˢ}`. -/
+theorem norm_apply_le_tsum_mFourierCoeff
+    (f : C(𝕋², ℂ))
+    (hsum : Summable (mFourierCoeff (d := Fin 2) f))
+    (x : 𝕋²) :
+    ‖f x‖ ≤ ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ := by
+  have hs : HasSum (fun k : Fin 2 → ℤ => mFourierCoeff f k • mFourier k x) (f x) :=
+    hasSum_mFourier_series_apply_of_summable hsum x
+  have hnorm_sum : Summable (fun k : Fin 2 → ℤ => ‖mFourierCoeff f k • mFourier k x‖) := by
+    refine Summable.of_nonneg_of_le (fun _ => norm_nonneg _) ?_ hsum.norm
+    intro k
+    rw [norm_smul]
+    have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 :=
+      calc ‖(mFourier k : 𝕋² → ℂ) x‖
+          ≤ ‖mFourier (d := Fin 2) k‖ := (mFourier k).norm_coe_le_norm x
+        _ = 1 := mFourier_norm
+    calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
+        ≤ ‖mFourierCoeff f k‖ * 1 := mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
+      _ = ‖mFourierCoeff f k‖ := by ring
+  rw [← hs.tsum_eq]
+  refine (norm_tsum_le_tsum_norm hnorm_sum).trans ?_
+  apply tsum_le_tsum
+  · intro k
+    rw [norm_smul]
+    have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 :=
+      calc ‖(mFourier k : 𝕋² → ℂ) x‖
+          ≤ ‖mFourier (d := Fin 2) k‖ := (mFourier k).norm_coe_le_norm x
+        _ = 1 := mFourier_norm
+    calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
+        ≤ ‖mFourierCoeff f k‖ * 1 := mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
+      _ = ‖mFourierCoeff f k‖ := by ring
+  · exact hnorm_sum
+  · exact hsum.norm
+
 end FourierAnalysis
