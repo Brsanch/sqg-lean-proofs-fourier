@@ -18,6 +18,7 @@ in the limit `N → ∞` uses the Bony decomposition from
 
 import FourierAnalysis.Paraproduct.Bounds
 import FourierAnalysis.KatoPonce.Product
+import FourierAnalysis.KatoPonce.SobolevEmbedding
 import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
@@ -347,5 +348,405 @@ theorem norm_partialCommutator_structural_le
     · intro j hj
       exact (norm_lpProjector_le_cumulative N g x j hj).trans hg
   linarith
+
+/-! ### Shell-sum → `hsSeminormSq` bridge
+
+For `j ≥ 1`, every mode `k` in `dyadicAnnulus j` has `lInfNorm k ≥ 2^(j-1) ≥ 1`,
+so `(2^(j-1))^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖²`.  Summing
+and bounding by the full `hsSeminormSq` gives
+`∑ k ∈ shell j, ‖f̂(k)‖² ≤ (2^(j-1))^(-2s) · hsSeminormSq s f`. -/
+
+/-- Pointwise lower bound on the `Ḣˢ`-weight on the shell at level `N+1`:
+for any `k` with `2^N ≤ lInfNorm k`, we have
+`(2^N)^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖²` when `0 ≤ 2s`. -/
+private lemma pow_shell_le_rpow_lInfNorm (N : ℕ) (s : ℝ) (hs : 0 < s)
+    (k : Fin 2 → ℤ) (hk : 2 ^ N ≤ lInfNorm k) :
+    ((2 : ℝ) ^ N) ^ (2 * s) ≤ (lInfNorm k : ℝ) ^ (2 * s) := by
+  have hpow_nn : (0 : ℝ) ≤ (2 : ℝ) ^ N := by positivity
+  have hlo : ((2 : ℝ) ^ N) ≤ (lInfNorm k : ℝ) := by exact_mod_cast hk
+  have h2s_nn : (0 : ℝ) ≤ 2 * s := by linarith
+  exact Real.rpow_le_rpow hpow_nn hlo h2s_nn
+
+/-- **Shell-sum → `Ḣˢ` bridge.**  For `s > 0` and `N ≥ 0`, the unweighted
+square-sum of Fourier coefficients on `dyadicAnnulus (N+1)` is bounded by
+`(2^N)^(-2s) · hsSeminormSq s f`. -/
+theorem sum_shell_sq_le_hsSeminormSq_weighted
+    (N : ℕ) (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+      ((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f := by
+  have hpow_pos : (0 : ℝ) < (2 : ℝ) ^ N := by positivity
+  have hpow_rpow_pos : (0 : ℝ) < ((2 : ℝ) ^ N) ^ (2 * s) :=
+    Real.rpow_pos_of_pos hpow_pos _
+  have hsum_weighted_shell_le_tot :
+      ∑ k ∈ dyadicAnnulus (N + 1),
+          (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤
+      hsSeminormSq s f := by
+    refine hsum.sum_le_tsum _ (fun k _ =>
+      mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (sq_nonneg _))
+  -- Pointwise: (2^N)^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖².
+  have hpoint : ∀ k ∈ dyadicAnnulus (N + 1),
+      ((2 : ℝ) ^ N) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤
+        (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 := by
+    intro k hk
+    rw [mem_dyadicAnnulus_succ] at hk
+    exact mul_le_mul_of_nonneg_right
+      (pow_shell_le_rpow_lInfNorm N s hs k hk.1) (sq_nonneg _)
+  have hweighted_shell_le :
+      ((2 : ℝ) ^ N) ^ (2 * s) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+        ∑ k ∈ dyadicAnnulus (N + 1),
+          (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum hpoint
+  -- Combine: (2^N)^(2s) · shell_sum ≤ hsSeminormSq s f.
+  have hshell_le_hs :
+      ((2 : ℝ) ^ N) ^ (2 * s) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+        hsSeminormSq s f :=
+    hweighted_shell_le.trans hsum_weighted_shell_le_tot
+  -- Divide by (2^N)^(2s): shell_sum ≤ (2^N)^(-2s) · hsSeminormSq s f.
+  have hid : ((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f =
+      (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ * hsSeminormSq s f := by
+    rw [Real.rpow_neg (le_of_lt hpow_pos)]
+  rw [hid]
+  calc ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2
+      = (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ *
+          (((2 : ℝ) ^ N) ^ (2 * s) *
+            ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
+        rw [← mul_assoc, inv_mul_cancel₀ (ne_of_gt hpow_rpow_pos), one_mul]
+    _ ≤ (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ * hsSeminormSq s f := by
+        refine mul_le_mul_of_nonneg_left hshell_le_hs ?_
+        exact inv_nonneg.mpr (le_of_lt hpow_rpow_pos)
+
+/-! ### Cumulative Bernstein → `hsSeminormSq` wrapper
+
+Applying the shell Bernstein bound
+`‖Δ_{N+1} f x‖² ≤ 4·4^(N+1) · ∑_{shell N+1} ‖f̂(k)‖²` on each shell and
+then the shell-sum → `Ḣˢ` bridge gives
+`‖Δ_{N+1} f x‖² ≤ 4·4^(N+1) · (2^N)^(-2s) · hsSeminormSq s f`.
+Summing over shells `1 ≤ j ≤ N+1` yields a geometric-series bound by
+`hsSeminormSq s f` alone for `s > 1`. -/
+
+/-- Shell-level combined Bernstein + `Ḣˢ` bridge at shell `N+1`:
+`‖Δ_{N+1} f x‖² ≤ (4·4^(N+1)) · (2^N)^(-2s) · hsSeminormSq s f`. -/
+theorem sq_norm_lpProjector_succ_le_hsSeminormSq
+    (N : ℕ) (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ) (x : 𝕋²)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ‖lpProjector (N + 1) f x‖ ^ 2 ≤
+      (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) *
+        hsSeminormSq s f := by
+  have hnn : (0 : ℝ) ≤ 4 * (4 : ℝ) ^ (N + 1) := by positivity
+  have hshell := sum_shell_sq_le_hsSeminormSq_weighted N s hs f hsum
+  calc ‖lpProjector (N + 1) f x‖ ^ 2
+      ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 :=
+        sq_norm_lpProjector_succ_le N f x
+    _ ≤ (4 * 4 ^ (N + 1) : ℝ) *
+          (((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f) :=
+        mul_le_mul_of_nonneg_left hshell hnn
+    _ = (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) *
+          hsSeminormSq s f := by ring
+
+/-- Per-shell coefficient simplified to geometric form:
+`4·4^(N+1) · (2^N)^(-2s) = 16 · 2^(2(1-s)·N)`. -/
+private lemma shell_coeff_eq_geometric (N : ℕ) (s : ℝ) :
+    (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) =
+      16 * (2 : ℝ) ^ (2 * (1 - s) * (N : ℝ)) := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h2_nn : (0 : ℝ) ≤ 2 := le_of_lt h2_pos
+  have h1 : ((2 : ℝ) ^ N) ^ (-(2 * s)) = (2 : ℝ) ^ (-(2 * s) * (N : ℝ)) := by
+    rw [show ((2 : ℝ) ^ N) = (2 : ℝ) ^ ((N : ℝ)) from (Real.rpow_natCast 2 N).symm,
+        ← Real.rpow_mul h2_nn]
+    ring_nf
+  have h2 : (4 : ℝ) * 4 ^ (N + 1) = 16 * (2 : ℝ) ^ (2 * (N : ℝ)) := by
+    rw [pow_succ]
+    rw [show (4 : ℝ) ^ N = (2 : ℝ) ^ (2 * (N : ℝ)) by
+      rw [show (4 : ℝ) = 2 ^ 2 from by norm_num,
+          show ((2:ℝ)^2)^N = ((2:ℝ)^(2*(N:ℝ))) from ?_]
+      rw [← Real.rpow_natCast ((2 : ℝ)^2) N, ← Real.rpow_natCast 2 2,
+          ← Real.rpow_mul h2_nn]
+      push_cast; ring_nf]
+    ring
+  rw [h1, h2]
+  rw [mul_assoc, mul_assoc, ← Real.rpow_add h2_pos]
+  ring_nf
+
+/-- **Cumulative Bernstein → `Ḣˢ` wrapper.**  For `s > 1`, the sum of
+squared projector norms over shells `1 ≤ j ≤ N+1` is bounded by
+`(∑_{j=0}^N 16·2^(2(1-s)j)) · hsSeminormSq s f`. -/
+theorem cumulative_bernstein_le_hsSeminormSq
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f : 𝕋² → ℂ) (x : 𝕋²)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2 ≤
+      (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s f := by
+  have hs_pos : 0 < s := by linarith
+  have hhs_nn : 0 ≤ hsSeminormSq s f := hsSeminormSq_nonneg s f
+  have hshell : ∀ j ∈ Finset.range (N + 1),
+      ‖lpProjector (j + 1) f x‖ ^ 2 ≤
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f := by
+    intro j _
+    have hbase := sq_norm_lpProjector_succ_le_hsSeminormSq j s hs_pos f x hsum
+    have heq := shell_coeff_eq_geometric j s
+    calc ‖lpProjector (j + 1) f x‖ ^ 2
+        ≤ (4 * 4 ^ (j + 1) : ℝ) * ((2 : ℝ) ^ j) ^ (-(2 * s)) *
+            hsSeminormSq s f := hbase
+      _ = 16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f := by
+          rw [heq]
+  calc ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2
+      ≤ ∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) * hsSeminormSq s f :=
+        Finset.sum_le_sum hshell
+    _ = (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s f := by
+        rw [Finset.sum_mul]
+
+/-- The per-shell geometric coefficient is nonnegative (trivial). -/
+lemma shell_geom_coeff_nonneg (s : ℝ) (j : ℕ) :
+    0 ≤ 16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) := by
+  have h2_pos : (0 : ℝ) < 2 := by norm_num
+  have h1 : 0 ≤ (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) :=
+    le_of_lt (Real.rpow_pos_of_pos h2_pos _)
+  linarith
+
+/-- The cumulative geometric constant `∑_{j=0}^N 16·2^(2(1-s)j)` is
+nonnegative. -/
+lemma cumulative_geom_coeff_nonneg (N : ℕ) (s : ℝ) :
+    0 ≤ ∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) := by
+  refine Finset.sum_nonneg (fun j _ => ?_)
+  exact shell_geom_coeff_nonneg s j
+
+/-! ### Quantitative L² Kato–Ponce commutator bound
+
+Combining the cumulative-Bernstein → `Ḣˢ` wrapper with Cauchy–Schwarz
+gives a linear-sum bound
+`∑_{j=0}^N ‖Δ_{j+1} f x‖ ≤ √((N+1) · C(N,s)) · √(hsSeminormSq s f)`.
+Substituting this into `norm_partialCommutator_structural_le` yields
+a pointwise partial-level commutator estimate in terms of the `Ḣˢ`
+seminorms of `f` and `g`. -/
+
+/-- Cauchy–Schwarz on the linear projector sum: the squared linear-sum
+over shells `1 ≤ j ≤ N+1` is bounded by `(N+1) · ∑ ‖Δ_{j+1} f x‖²`. -/
+theorem sq_sum_lpProjector_succ_le_card_mul_sum_sq
+    (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    (∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖) ^ 2 ≤
+      (N + 1 : ℕ) * ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2 := by
+  calc (∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖) ^ 2
+      ≤ (Finset.range (N + 1)).card *
+          ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2 :=
+        sq_sum_le_card_mul_sum_sq
+    _ = (N + 1 : ℕ) * ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ^ 2 := by
+        rw [Finset.card_range]
+
+/-- **Linear-sum → `Ḣˢ` bridge.**  For `s > 1`, the cumulative linear
+projector-sum `∑_{j=0}^N ‖Δ_{j+1} f x‖` is bounded by
+`√((N+1) · C(N,s) · hsSeminormSq s f)` where `C(N,s)` is the
+cumulative geometric coefficient. -/
+theorem sum_lpProjector_succ_le_sqrt_hsSeminormSq
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f : 𝕋² → ℂ) (x : 𝕋²)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ ≤
+      Real.sqrt ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s f) := by
+  have hsum_nn : 0 ≤ ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ :=
+    Finset.sum_nonneg (fun _ _ => norm_nonneg _)
+  have hcum := cumulative_bernstein_le_hsSeminormSq N s hs f x hsum
+  have hCS := sq_sum_lpProjector_succ_le_card_mul_sum_sq N f x
+  have hN_nn : (0 : ℝ) ≤ (N + 1 : ℕ) := by positivity
+  have hC_nn : 0 ≤ ∑ j ∈ Finset.range (N + 1),
+      16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ)) := cumulative_geom_coeff_nonneg N s
+  have hhs_nn : 0 ≤ hsSeminormSq s f := hsSeminormSq_nonneg s f
+  have hchained :
+      (∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖) ^ 2 ≤
+        (N + 1 : ℕ) *
+          ((∑ j ∈ Finset.range (N + 1),
+              16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+            hsSeminormSq s f) :=
+    hCS.trans (mul_le_mul_of_nonneg_left hcum hN_nn)
+  have hrhs_nn :
+      (0 : ℝ) ≤ (N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s f :=
+    mul_nonneg (mul_nonneg hN_nn hC_nn) hhs_nn
+  have hsq_form :
+      (∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖) ^ 2 ≤
+        (N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s f := by
+    calc (∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖) ^ 2
+        ≤ (N + 1 : ℕ) *
+            ((∑ j ∈ Finset.range (N + 1),
+                16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+              hsSeminormSq s f) := hchained
+      _ = (N + 1 : ℕ) *
+            (∑ j ∈ Finset.range (N + 1),
+              16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+            hsSeminormSq s f := by ring
+  calc ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖
+      = Real.sqrt ((∑ j ∈ Finset.range (N + 1),
+            ‖lpProjector (j + 1) f x‖) ^ 2) := (Real.sqrt_sq hsum_nn).symm
+    _ ≤ Real.sqrt ((N + 1 : ℕ) *
+            (∑ j ∈ Finset.range (N + 1),
+              16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+            hsSeminormSq s f) := Real.sqrt_le_sqrt hsq_form
+
+/-- Linear cumulative shell-sum over `Finset.Ico 3 (N+1)` is dominated by
+the cumulative shell-sum over `Finset.range (N+1)` of shifted shells
+`j+1`.  Proof: the map `M ↦ M` embeds `Ico 3 (N+1)` into the image of
+`j ↦ j+1` on `range (N+1)` (which is `Ico 1 (N+2)`), so the RHS has
+more nonneg terms. -/
+theorem sum_Ico_lpProjector_le_range_shifted
+    (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ ≤
+      ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ := by
+  -- Rewrite the shifted sum as a sum over `Finset.Ico 1 (N+2)`.
+  have hshift :
+      ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) f x‖ =
+        ∑ M ∈ Finset.Ico 1 (N + 2), ‖lpProjector M f x‖ := by
+    rw [show (Finset.Ico 1 (N + 2)) = (Finset.range (N + 1)).image (· + 1) by
+      ext m
+      simp only [Finset.mem_Ico, Finset.mem_image, Finset.mem_range]
+      constructor
+      · intro ⟨h1, h2⟩
+        refine ⟨m - 1, ?_, ?_⟩
+        · omega
+        · omega
+      · rintro ⟨j, hj, rfl⟩
+        omega]
+    rw [Finset.sum_image (fun a _ b _ hab => by omega)]
+  rw [hshift]
+  refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+  · intro M hM
+    rw [Finset.mem_Ico] at hM ⊢
+    omega
+  · intro _ _ _
+    exact norm_nonneg _
+
+/-- Full linear cumulative `range (N+1)` projector-sum dominates the
+partial `Ico 3 (N+1)` sum.  Useful for bounding the paraproduct piece
+via a Ḣˢ-weighted Cauchy-Schwarz. -/
+theorem sum_Ico_lpProjector_le_range
+    (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ ≤
+      ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ := by
+  refine Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun _ _ _ => norm_nonneg _)
+  intro M hM
+  rw [Finset.mem_Ico] at hM
+  rw [Finset.mem_range]
+  omega
+
+/-- **Quantitative L² Kato–Ponce partial commutator bound.**
+
+Substituting Ḣˢ-derived bounds into the structural estimate:
+given hypotheses `Mf, Mg` controlling the `L∞`-style cumulative
+projector-sums of `f` and `g`, and the Ḣˢ-derived linear bound
+`∑_{j=0}^N ‖Δ_{j+1} g x‖ ≤ Kg` (respectively `Kf` for `f`), the partial
+commutator is bounded pointwise by the five-term structural sum. -/
+theorem norm_partialCommutator_le_hs
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {Mf Mg Kf Kg Sfg T : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) (hMg : 0 ≤ Mg)
+    (hKf : ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ ≤ Kf)
+    (hKg : ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ ≤ Kg)
+    (hSfg : ‖lpPartialSum N (fun t => f t * g t) x‖ ≤ Sfg)
+    (hTail : ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤ T) :
+    ‖partialCommutator N f g x‖ ≤
+      Sfg + Mf * Kg + Mg * Kf +
+        ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+              (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Mf * Mg) + T := by
+  have hstruct := norm_partialCommutator_structural_le N f g x hf hg hMf hMg
+  have hP1 : Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ ≤ Mf * Kg :=
+    mul_le_mul_of_nonneg_left hKg hMf
+  have hP2 : Mg * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ ≤ Mg * Kf :=
+    mul_le_mul_of_nonneg_left hKf hMg
+  linarith
+
+/-- **Quantitative paraproduct-piece bound via `Ḣˢ`.**
+
+Combines `norm_paraproductPartial_le_of_cumulative_bound`
+(paraproduct ≤ `Mf · Σ_M ‖Δ_M g x‖`) with the shift + `Ḣˢ`-linear-sum
+bound to replace `Σ_M ‖Δ_M g x‖` by `√(C(N,s) · hsSeminormSq s g)`. -/
+theorem norm_paraproductPartial_le_hs
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf)
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2)) :
+    ‖paraproductPartial N f g x‖ ≤
+      Mf * Real.sqrt ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g) := by
+  have hpp := norm_paraproductPartial_le_of_cumulative_bound N f g x hf hMf
+  have hshift := sum_Ico_lpProjector_le_range_shifted N g x
+  have hsqrt := sum_lpProjector_succ_le_sqrt_hsSeminormSq N s hs g x hgsum
+  calc ‖paraproductPartial N f g x‖
+      ≤ Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ := hpp
+    _ ≤ Mf * ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) g x‖ :=
+        mul_le_mul_of_nonneg_left hshift hMf
+    _ ≤ Mf * Real.sqrt ((N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+            hsSeminormSq s g) :=
+        mul_le_mul_of_nonneg_left hsqrt hMf
+
+/-- Squared form of the paraproduct-piece bound.  Squaring the linear
+bound gives `‖paraproductPartial N f g x‖² ≤ Mf² · C(N,s) · hsSeminormSq s g`
+directly (the `Real.sqrt` is absorbed back by `Real.sq_sqrt`). -/
+theorem sq_norm_paraproductPartial_le_hs
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf)
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2)) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      Mf ^ 2 * ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g) := by
+  have hlin := norm_paraproductPartial_le_hs N s hs f g x hf hMf hgsum
+  have hpp_nn : 0 ≤ ‖paraproductPartial N f g x‖ := norm_nonneg _
+  have hrhs_nn : (0 : ℝ) ≤ (N + 1 : ℕ) *
+      (∑ j ∈ Finset.range (N + 1),
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g := by
+    refine mul_nonneg (mul_nonneg ?_ ?_) (hsSeminormSq_nonneg s g)
+    · exact_mod_cast Nat.zero_le _
+    · exact cumulative_geom_coeff_nonneg N s
+  have hsqrt_nn : (0 : ℝ) ≤ Real.sqrt ((N + 1 : ℕ) *
+      (∑ j ∈ Finset.range (N + 1),
+        16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g) := Real.sqrt_nonneg _
+  have hrhs_mul_nn : (0 : ℝ) ≤ Mf *
+      Real.sqrt ((N + 1 : ℕ) *
+        (∑ j ∈ Finset.range (N + 1),
+          16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+        hsSeminormSq s g) := mul_nonneg hMf hsqrt_nn
+  calc ‖paraproductPartial N f g x‖ ^ 2
+      ≤ (Mf * Real.sqrt ((N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g)) ^ 2 := pow_le_pow_left₀ hpp_nn hlin 2
+    _ = Mf ^ 2 * ((N + 1 : ℕ) *
+          (∑ j ∈ Finset.range (N + 1),
+            16 * (2 : ℝ) ^ (2 * (1 - s) * (j : ℝ))) *
+          hsSeminormSq s g) := by
+        rw [mul_pow, Real.sq_sqrt hrhs_nn]
 
 end FourierAnalysis
