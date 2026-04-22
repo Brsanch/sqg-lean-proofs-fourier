@@ -211,4 +211,41 @@ lemma sq_lpProjector_mul_lpProjector_le (a b : ℕ) (f g : 𝕋² → ℂ) (x : 
             ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) := by
         push_cast; ring
 
+/-- **L² paraproduct bound (Parseval form).**  The squared pointwise value of
+the paraproduct is controlled by a filtered sum over shell pairs `(a, b)`
+with `a + 3 ≤ b`, with per-pair Bernstein weights `card(shell_a) · card(shell_b)`
+and per-shell squared-Fourier moduli products.  Combines
+`sq_norm_paraproductPartial_loose_le` with
+`sq_lpProjector_mul_lpProjector_le`. -/
+theorem sq_norm_paraproductPartial_le_l2 (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => p.1 + 3 ≤ p.2),
+          ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+              ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2) := by
+  refine (sq_norm_paraproductPartial_loose_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun p _ => ?_)
+    exact sq_lpProjector_mul_lpProjector_le p.1 p.2 f g x
+  · exact_mod_cast Nat.zero_le _
+
+/-- **L² remainder bound (Parseval form).**  The squared pointwise value of
+the remainder is controlled by a filtered sum over shell pairs `(a, b)`
+with `Nat.dist a b ≤ 2`, with per-pair Bernstein weights. -/
+theorem sq_norm_remainderPartial_le_l2 (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ^ 2 ≤
+      ((N + 1) ^ 2 : ℕ) *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2),
+          ((dyadicAnnulus p.1).card * (dyadicAnnulus p.2).card : ℕ) *
+            ((∑ k ∈ dyadicAnnulus p.1, ‖mFourierCoeff f k‖ ^ 2) *
+              ∑ m ∈ dyadicAnnulus p.2, ‖mFourierCoeff g m‖ ^ 2) := by
+  refine (sq_norm_remainderPartial_loose_le N f g x).trans ?_
+  apply mul_le_mul_of_nonneg_left
+  · refine Finset.sum_le_sum (fun p _ => ?_)
+    exact sq_lpProjector_mul_lpProjector_le p.1 p.2 f g x
+  · exact_mod_cast Nat.zero_le _
+
 end FourierAnalysis
