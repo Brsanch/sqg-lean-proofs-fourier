@@ -57,4 +57,34 @@ lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := b
   unfold hsSeminormSq
   simp [mFourierCoeff_zero_fn]
 
+/-- Per-shell lattice zeta contribution: the sum of `|k|^{-2s}` over the
+dyadic shell at level `N+1` is at most `4 · 4^(N+1) · 2^(-2s·N)`, using
+the cardinality bound and the ℓ∞ lower bound `|k|_∞ ≥ 2^N` on the shell. -/
+lemma sum_shell_rpow_neg_le (N : ℕ) (s : ℝ) (hs : 0 < s) :
+    ∑ k ∈ dyadicAnnulus (N + 1), (lInfNorm k : ℝ) ^ (-(2 * s)) ≤
+      (4 * 4 ^ (N + 1) : ℝ) * (2 ^ N : ℝ) ^ (-(2 * s)) := by
+  have hpow_pos : (0 : ℝ) < (2 : ℝ) ^ N := by positivity
+  -- Each term is bounded by the same maximum: `(2^N)^(-2s)` since
+  -- `|k|_∞ ≥ 2^N` on the shell and `(·)^(-2s)` is decreasing for `s > 0`.
+  have hbound : ∀ k ∈ dyadicAnnulus (N + 1),
+      (lInfNorm k : ℝ) ^ (-(2 * s)) ≤ ((2 : ℝ) ^ N) ^ (-(2 * s)) := by
+    intro k hk
+    rw [mem_dyadicAnnulus_succ] at hk
+    have hlo : ((2 : ℝ) ^ N) ≤ (lInfNorm k : ℝ) := by
+      have : (2 ^ N : ℕ) ≤ lInfNorm k := hk.1
+      exact_mod_cast this
+    have hk_pos : (0 : ℝ) < (lInfNorm k : ℝ) := lt_of_lt_of_le hpow_pos hlo
+    have h2s_neg : -(2 * s) ≤ 0 := by linarith
+    -- Monotonicity: for nonneg base, `x ↦ x^(-2s)` is decreasing.
+    exact Real.rpow_le_rpow_of_nonpos hpow_pos hlo h2s_neg
+  calc ∑ k ∈ dyadicAnnulus (N + 1), (lInfNorm k : ℝ) ^ (-(2 * s))
+      ≤ ∑ k ∈ dyadicAnnulus (N + 1), ((2 : ℝ) ^ N) ^ (-(2 * s)) :=
+        Finset.sum_le_sum hbound
+    _ = (dyadicAnnulus (N + 1)).card * ((2 : ℝ) ^ N) ^ (-(2 * s)) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (4 * 4 ^ (N + 1) : ℝ) * ((2 : ℝ) ^ N) ^ (-(2 * s)) := by
+        apply mul_le_mul_of_nonneg_right
+        · exact_mod_cast card_dyadicAnnulus_succ_le_four_pow N
+        · exact Real.rpow_nonneg (le_of_lt hpow_pos) _
+
 end FourierAnalysis
