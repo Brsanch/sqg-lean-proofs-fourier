@@ -80,6 +80,18 @@ lemma partialCommutator_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g :
   simp [smul_eq_mul, mul_sub]
   ring
 
+/-- Antisymmetry identity: the swapped commutator difference equals
+`g(x)·S_N(f)(x) - f(x)·S_N(g)(x)`.  This is the source of the
+commutator cancellation in Kato–Ponce. -/
+lemma partialCommutator_sub_swap (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N f g x - partialCommutator N g f x =
+      g x * lpPartialSum N f x - f x * lpPartialSum N g x := by
+  unfold partialCommutator
+  have h : (fun t : 𝕋² => g t * f t) = (fun t => f t * g t) := by
+    funext t; ring
+  rw [h]
+  ring
+
 /-- Projector-level triangle bound on the partial commutator. -/
 theorem norm_partialCommutator_via_projectors (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     ‖partialCommutator N f g x‖ ≤
