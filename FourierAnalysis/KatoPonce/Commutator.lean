@@ -130,7 +130,8 @@ theorem partialCommutator_eq_bony_expansion (N : ℕ) (f g : 𝕋² → ℂ) (x 
         + (lpPartialSum N f x - f x) * lpPartialSum N g x := by
   unfold partialCommutator
   have hbony := bony_partial N f g x
-  linear_combination -hbony
+  rw [← hbony]
+  ring
 
 /-- Triangle bound on the partial commutator via the Bony expansion. -/
 theorem norm_partialCommutator_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
