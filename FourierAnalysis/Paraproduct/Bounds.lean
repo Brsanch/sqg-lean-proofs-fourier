@@ -176,4 +176,39 @@ theorem sq_norm_lpPartialSum_shell_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²
     exact sq_norm_lpProjector_le j f x
   · exact_mod_cast Nat.zero_le _
 
+/-- AM–GM / Cauchy–Schwarz pointwise bound on a product of projector norms:
+`(‖Δ_a f x‖ · ‖Δ_b g x‖)² ≤ card(shell a) · card(shell b) · (∑_{shell a} ‖f̂‖²) · (∑_{shell b} ‖ĝ‖²)`.
+Product form of `sq_norm_lpProjector_le` on two independent shells. -/
+lemma sq_lpProjector_mul_lpProjector_le (a b : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    (‖lpProjector a f x‖ * ‖lpProjector b g x‖) ^ 2 ≤
+      ((dyadicAnnulus a).card * (dyadicAnnulus b).card : ℕ) *
+        ((∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) := by
+  have ha := sq_norm_lpProjector_le a f x
+  have hb := sq_norm_lpProjector_le b g x
+  have hna : (0 : ℝ) ≤ ‖lpProjector a f x‖ := norm_nonneg _
+  have hnb : (0 : ℝ) ≤ ‖lpProjector b g x‖ := norm_nonneg _
+  have hna2 : (0 : ℝ) ≤ ‖lpProjector a f x‖ ^ 2 := sq_nonneg _
+  have hsumA : (0 : ℝ) ≤
+      (dyadicAnnulus a).card * ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2 := by
+    have h1 : (0 : ℝ) ≤ ((dyadicAnnulus a).card : ℝ) := by exact_mod_cast Nat.zero_le _
+    have h2 : (0 : ℝ) ≤ ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2 :=
+      Finset.sum_nonneg (fun _ _ => sq_nonneg _)
+    exact mul_nonneg h1 h2
+  calc (‖lpProjector a f x‖ * ‖lpProjector b g x‖) ^ 2
+      = ‖lpProjector a f x‖ ^ 2 * ‖lpProjector b g x‖ ^ 2 := by ring
+    _ ≤ ((dyadicAnnulus a).card *
+            ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ‖lpProjector b g x‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right ha (sq_nonneg _)
+    _ ≤ ((dyadicAnnulus a).card *
+            ∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+          ((dyadicAnnulus b).card *
+            ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) :=
+          mul_le_mul_of_nonneg_left hb hsumA
+    _ = ((dyadicAnnulus a).card * (dyadicAnnulus b).card : ℕ) *
+          ((∑ k ∈ dyadicAnnulus a, ‖mFourierCoeff f k‖ ^ 2) *
+            ∑ m ∈ dyadicAnnulus b, ‖mFourierCoeff g m‖ ^ 2) := by
+        push_cast; ring
+
 end FourierAnalysis
