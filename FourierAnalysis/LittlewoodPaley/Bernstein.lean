@@ -3,28 +3,36 @@ Copyright (c) 2026 Bryan Sanchez. All rights reserved.
 Released under MIT license.
 Authors: Bryan Sanchez
 
-Bernstein's inequality for dyadic projectors on 𝕋².
+# Bernstein-type inequalities on `𝕋²`
 
-**Contents (planned, ~150 LOC):**
-- `bernstein_Linf_of_L2 : ‖Δ_N f‖_{L∞} ≤ C · 2^{Nd/2} · ‖Δ_N f‖_{L²}`
-  for `f ∈ L²(𝕋²)`, `d = 2`.
-- Derivative form `‖∇^k Δ_N f‖_{L^p} ≤ C · 2^{Nk} · ‖Δ_N f‖_{L^p}`.
+Pointwise bounds for the dyadic Fourier projector `lpProjector`.
+The primary inequality (to follow via Cauchy–Schwarz + the
+cardinality estimate `card_dyadicAnnulus_succ_le_four_pow`):
 
-This is the PRIMARY inequality used in the Kato–Ponce commutator proof.
-The constant `C` depends only on the dimension (and the dyadic
-partition-of-unity structure), not on `N` or `f`.
+`‖Δ_N f‖_{L^∞} ≤ C · 2^N · ‖Δ_N f‖_{L²}`.
 
-Proof sketch: `Δ_N f` has finite Fourier support on `dyadicAnnulus N`,
-so the triangle inequality on the Fourier series gives
-`‖Δ_N f‖_{L∞} ≤ |annulus| · max_{k} |f̂(k)|`.  `|annulus N| ≈ 2^{Nd}`
-and Parseval gives `max |f̂| ≤ ‖f̂‖_{ℓ²} = ‖Δ_N f‖_{L²}`, yielding
-`‖Δ_N f‖_{L∞} ≤ 2^{Nd/2}·‖Δ_N f‖_{L²}` (up to constants).
+This file currently contains the triangle-inequality precursor.
 -/
 
-import Mathlib
+import FourierAnalysis.LittlewoodPaley.Dyadic
 
 namespace FourierAnalysis
 
--- TODO: Bernstein inequality content.
+open UnitAddTorus
+
+/-- Pointwise triangle-inequality bound on the dyadic projector. -/
+theorem norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpProjector N f x‖ ≤ ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ := by
+  unfold lpProjector
+  refine (norm_sum_le _ _).trans ?_
+  refine Finset.sum_le_sum (fun k _ => ?_)
+  rw [norm_smul]
+  have h1 : ‖(mFourier k : 𝕋² → ℂ) x‖ ≤ 1 := by
+    rw [show (1 : ℝ) = ‖mFourier (d := Fin 2) k‖ from (mFourier_norm).symm]
+    exact (mFourier k).norm_coe_le_norm x
+  calc ‖mFourierCoeff f k‖ * ‖(mFourier k : 𝕋² → ℂ) x‖
+      ≤ ‖mFourierCoeff f k‖ * 1 := by
+        exact mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
+    _ = ‖mFourierCoeff f k‖ := by ring
 
 end FourierAnalysis
