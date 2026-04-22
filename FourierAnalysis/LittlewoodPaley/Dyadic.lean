@@ -350,6 +350,17 @@ theorem tendsto_lpPartialSum_of_hasSum
   simp_rw [lpPartialSum_eq_sum_lInfBall]
   exact hs.comp tendsto_lInfBall_atTop_atTop
 
+open UnitAddTorus in
+/-- For a continuous function with summable Fourier coefficients, the
+dyadic partial sums converge pointwise to the function value. -/
+theorem tendsto_lpPartialSum_of_summable
+    (f : C(𝕋², ℂ))
+    (hsum : Summable (mFourierCoeff (d := Fin 2) f))
+    (x : 𝕋²) :
+    Filter.Tendsto (fun N : ℕ => lpPartialSum N f x) Filter.atTop (nhds (f x)) :=
+  tendsto_lpPartialSum_of_hasSum _ _ _
+    (hasSum_mFourier_series_apply_of_summable hsum x)
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum
