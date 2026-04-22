@@ -33,4 +33,17 @@ lemma hsSeminormSq_nonneg (s : ℝ) (f : 𝕋² → ℂ) : 0 ≤ hsSeminormSq s 
   have h2 : (0 : ℝ) ≤ ‖mFourierCoeff f k‖ ^ 2 := sq_nonneg _
   exact mul_nonneg h1 h2
 
+/-- Lattice zeta constant: `∑' k ≠ 0, |k|_∞^{-2s}`.  Converges for `s > 1`
+(dimension 2).  This is the dual quantity controlling the Cauchy–Schwarz
+bound in the Sobolev embedding. -/
+noncomputable def latticeZetaSq (s : ℝ) : ℝ :=
+  ∑' k : Fin 2 → ℤ, if k = 0 then 0 else (lInfNorm k : ℝ) ^ (-(2 * s))
+
+lemma latticeZetaSq_nonneg (s : ℝ) : 0 ≤ latticeZetaSq s := by
+  unfold latticeZetaSq
+  refine tsum_nonneg (fun k => ?_)
+  split_ifs with hk
+  · exact le_refl _
+  · exact Real.rpow_nonneg (Nat.cast_nonneg _) _
+
 end FourierAnalysis
