@@ -20,6 +20,17 @@ namespace FourierAnalysis
 
 open UnitAddTorus
 
+/-- Direct factorization bound: `‖S_N f · S_N g‖ ≤ ‖S_N f‖ · ‖S_N g‖`.  This
+is the starting point before applying the triangle inequality at the
+projector level. -/
+theorem norm_lpPartialSum_product_direct_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpPartialSum N f x * lpPartialSum N g x‖ ≤
+      (∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖) *
+        (∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖) := by
+  rw [norm_mul]
+  exact mul_le_mul (norm_lpPartialSum_le _ _ _) (norm_lpPartialSum_le _ _ _)
+    (norm_nonneg _) (Finset.sum_nonneg (fun _ _ => norm_nonneg _))
+
 /-- Pointwise triangle bound on the product of partial sums via Bony. -/
 theorem norm_lpPartialSum_product_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     ‖lpPartialSum N f x * lpPartialSum N g x‖ ≤
