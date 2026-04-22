@@ -202,4 +202,15 @@ theorem norm_apply_le_tsum_mFourierCoeff
       ≤ ‖mFourierCoeff f k‖ * 1 := mul_le_mul_of_nonneg_left h1 (norm_nonneg _)
     _ = ‖mFourierCoeff f k‖ := by ring
 
+/-- Convenience: given a bound `B` on the sum of Fourier-coefficient moduli,
+the function is pointwise bounded by `B`. -/
+theorem norm_apply_le_of_tsum_bound
+    (f : C(𝕋², ℂ))
+    (hsum : Summable (mFourierCoeff (d := Fin 2) f))
+    {B : ℝ}
+    (hB : ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ ≤ B)
+    (x : 𝕋²) :
+    ‖f x‖ ≤ B :=
+  (norm_apply_le_tsum_mFourierCoeff f hsum x).trans hB
+
 end FourierAnalysis
