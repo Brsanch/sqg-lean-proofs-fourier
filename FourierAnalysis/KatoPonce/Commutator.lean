@@ -961,7 +961,7 @@ theorem sum_lpProjector_succ_le_sqrt_hsSeminormSq_uniform
   -- Identity A_j · B_j = ‖Δ_{j+1} f x‖.
   have hAB : ∀ j : ℕ, A j * B j = ‖lpProjector (j + 1) f x‖ := by
     intro j
-    unfold_let A B
+    simp only [A, B]
     rw [← mul_assoc]
     rw [show (2 : ℝ) ^ (-(s - 1) / 2 * (j : ℝ)) *
             (2 : ℝ) ^ ((s - 1) / 2 * (j : ℝ)) = 1 by
@@ -972,23 +972,18 @@ theorem sum_lpProjector_succ_le_sqrt_hsSeminormSq_uniform
   -- A_j² = 2^(-(s-1)·j).
   have hA_sq : ∀ j : ℕ, A j ^ 2 = (2 : ℝ) ^ (-(s - 1) * (j : ℝ)) := by
     intro j
-    unfold_let A
-    rw [show A j ^ 2 = A j * A j from sq (A j),
-        show A j = (2 : ℝ) ^ (-(s - 1) / 2 * (j : ℝ)) from rfl]
-    rw [← Real.rpow_add h2_pos]
+    simp only [A]
+    rw [sq, ← Real.rpow_add h2_pos]
     congr 1
     ring
   -- B_j² = 2^((s-1)·j) · ‖Δ_{j+1} f x‖².
   have hB_sq : ∀ j : ℕ, B j ^ 2 =
       (2 : ℝ) ^ ((s - 1) * (j : ℝ)) * ‖lpProjector (j + 1) f x‖ ^ 2 := by
     intro j
-    unfold_let B
+    simp only [B]
     rw [mul_pow]
     congr 1
-    rw [show ((2 : ℝ) ^ ((s - 1) / 2 * (j : ℝ))) ^ 2 =
-          (2 : ℝ) ^ ((s - 1) / 2 * (j : ℝ)) *
-          (2 : ℝ) ^ ((s - 1) / 2 * (j : ℝ)) from sq _]
-    rw [← Real.rpow_add h2_pos]
+    rw [sq, ← Real.rpow_add h2_pos]
     congr 1
     ring
   -- Cauchy-Schwarz: (∑ A_j · B_j)² ≤ (∑ A_j²) · (∑ B_j²).
