@@ -280,6 +280,18 @@ lemma lpPartialSum_smul (N : ℕ) (c : ℂ) (f : 𝕋² → ℂ) (x : 𝕋²) :
   refine Finset.sum_congr rfl (fun j _ => ?_)
   rw [lpProjector_smul]
 
+/-- The dyadic projector of the zero function is zero. -/
+@[simp] lemma lpProjector_zero_fn (N : ℕ) (x : 𝕋²) :
+    lpProjector N (0 : 𝕋² → ℂ) x = 0 := by
+  unfold lpProjector
+  simp [mFourierCoeff_zero_fn]
+
+/-- The dyadic partial sum of the zero function is zero. -/
+@[simp] lemma lpPartialSum_zero_fn (N : ℕ) (x : 𝕋²) :
+    lpPartialSum N (0 : 𝕋² → ℂ) x = 0 := by
+  unfold lpPartialSum
+  simp
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum

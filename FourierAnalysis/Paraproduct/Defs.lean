@@ -158,6 +158,34 @@ lemma remainderPartial_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g : 
   simp [smul_eq_mul]
   ring
 
+/-- The paraproduct vanishes when the left (low-frequency) argument is zero. -/
+@[simp] lemma paraproductPartial_zero_left (N : ℕ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N (0 : 𝕋² → ℂ) g x = 0 := by
+  unfold paraproductPartial
+  refine Finset.sum_eq_zero (fun M _ => ?_)
+  rw [lpPartialSum_zero_fn, zero_mul]
+
+/-- The paraproduct vanishes when the right (high-frequency) argument is zero. -/
+@[simp] lemma paraproductPartial_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N f (0 : 𝕋² → ℂ) x = 0 := by
+  unfold paraproductPartial
+  refine Finset.sum_eq_zero (fun M _ => ?_)
+  rw [lpProjector_zero_fn, mul_zero]
+
+/-- The remainder vanishes when the left argument is zero. -/
+@[simp] lemma remainderPartial_zero_left (N : ℕ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    remainderPartial N (0 : 𝕋² → ℂ) g x = 0 := by
+  unfold remainderPartial
+  refine Finset.sum_eq_zero (fun p _ => ?_)
+  rw [lpProjector_zero_fn, zero_mul]
+
+/-- The remainder vanishes when the right argument is zero. -/
+@[simp] lemma remainderPartial_zero_right (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    remainderPartial N f (0 : 𝕋² → ℂ) x = 0 := by
+  unfold remainderPartial
+  refine Finset.sum_eq_zero (fun p _ => ?_)
+  rw [lpProjector_zero_fn, mul_zero]
+
 /-- The symmetric remainder is commutative in its arguments. -/
 lemma remainderPartial_comm (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     remainderPartial N f g x = remainderPartial N g f x := by
