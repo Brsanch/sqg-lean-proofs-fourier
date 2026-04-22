@@ -20,6 +20,13 @@ namespace FourierAnalysis
 
 open UnitAddTorus
 
+/-- Pointwise triangle bound on the partial sum: sum of projector norms. -/
+theorem norm_lpPartialSum_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖lpPartialSum N f x‖ ≤
+      ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ := by
+  unfold lpPartialSum
+  exact norm_sum_le _ _
+
 /-- Pointwise triangle-inequality bound on the dyadic projector. -/
 theorem norm_lpProjector_le (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     ‖lpProjector N f x‖ ≤ ∑ k ∈ dyadicAnnulus N, ‖mFourierCoeff f k‖ := by
