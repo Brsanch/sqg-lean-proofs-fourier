@@ -25,7 +25,7 @@ noncomputable def paraproductPartial (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋�
 /-- Finite symmetric remainder `R^{≤N}(f, g)`: the double sum of
 `Δ_M(f)·Δ_{M'}(g)` over `(M, M') ∈ [0, N]²` with `|M - M'| ≤ 2`. -/
 noncomputable def remainderPartial (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) : ℂ :=
-  ∑ p ∈ ((Finset.range (N + 1)).product (Finset.range (N + 1))).filter
+  ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
           (fun p => Nat.dist p.1 p.2 ≤ 2),
     lpProjector p.1 f x * lpProjector p.2 g x
 
@@ -71,7 +71,7 @@ lemma paraproductPartial_eq_double_sum (N : ℕ) (f g : 𝕋² → ℂ) (x : �
 filter predicate `p.1 + 3 ≤ p.2` (the "low × high" index set). -/
 lemma paraproductPartial_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     paraproductPartial N f g x =
-      ∑ p ∈ ((Finset.range (N + 1)).product (Finset.range (N + 1))).filter
+      ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
               (fun p => p.1 + 3 ≤ p.2),
         lpProjector p.1 f x * lpProjector p.2 g x := by
   rw [paraproductPartial_eq_double_sum, Finset.sum_sigma']
