@@ -46,4 +46,15 @@ lemma latticeZetaSq_nonneg (s : ℝ) : 0 ≤ latticeZetaSq s := by
   · exact le_refl _
   · exact Real.rpow_nonneg (Nat.cast_nonneg _) _
 
+/-- The 2D Fourier coefficient of the zero function vanishes at every mode. -/
+lemma mFourierCoeff_zero_fn (k : Fin 2 → ℤ) :
+    mFourierCoeff (0 : 𝕋² → ℂ) k = 0 := by
+  unfold mFourierCoeff
+  simp
+
+/-- The Ḣˢ seminorm of the zero function vanishes. -/
+lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := by
+  unfold hsSeminormSq
+  simp [mFourierCoeff_zero_fn]
+
 end FourierAnalysis
