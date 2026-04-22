@@ -93,4 +93,31 @@ lemma paraproductPartial_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x : �
   · intro _ _; rfl
   · intro _ _; rfl
 
+/-- The swapped paraproduct `T_g f` as a filtered sum with predicate
+`p.2 + 3 ≤ p.1` (the "high × low" index set).  Obtained from
+`paraproductPartial_eq_sum_filter` by the involution `(a, b) ↦ (b, a)`. -/
+lemma paraproductPartial_swap_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N g f x =
+      ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+              (fun p => p.2 + 3 ≤ p.1),
+        lpProjector p.1 f x * lpProjector p.2 g x := by
+  rw [paraproductPartial_eq_sum_filter]
+  refine Finset.sum_nbij'
+    (fun p => (p.2, p.1))
+    (fun p => (p.2, p.1))
+    ?_ ?_ ?_ ?_ ?_
+  · intro p hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hp
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
+    refine ⟨⟨?_, ?_⟩, ?_⟩ <;> omega
+  · intro p hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hp
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
+    refine ⟨⟨?_, ?_⟩, ?_⟩ <;> omega
+  · intro _ _; rfl
+  · intro _ _; rfl
+  · intro _ _; ring
+
 end FourierAnalysis
