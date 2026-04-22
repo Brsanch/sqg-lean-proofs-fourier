@@ -232,4 +232,14 @@ theorem norm_apply_le_of_tsum_bound
     ‖f x‖ ≤ B :=
   (norm_apply_le_tsum_mFourierCoeff f hsum x).trans hB
 
+/-- Sup-norm (continuous map) bound: `‖f‖_∞ ≤ ∑' k, ‖f̂(k)‖` under
+summability.  This is the Sobolev embedding at the `L∞` level. -/
+theorem norm_le_tsum_mFourierCoeff
+    (f : C(𝕋², ℂ))
+    (hsum : Summable (mFourierCoeff (d := Fin 2) f)) :
+    ‖f‖ ≤ ∑' k : Fin 2 → ℤ, ‖mFourierCoeff f k‖ := by
+  refine (ContinuousMap.norm_le _ (tsum_nonneg (fun _ => norm_nonneg _))).mpr ?_
+  intro x
+  exact norm_apply_le_tsum_mFourierCoeff f hsum x
+
 end FourierAnalysis
