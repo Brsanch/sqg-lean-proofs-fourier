@@ -1051,4 +1051,123 @@ theorem sum_lpProjector_succ_le_sqrt_hsSeminormSq_uniform
           (16 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹ * hsSeminormSq s f) := hrhs_bound
     _ = 16 * ((1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 * hsSeminormSq s f := by ring
 
+/-! ### Uniform-in-`N` quantitative Kato–Ponce commutator
+
+Plugging the dyadic-weighted `sum_lpProjector_succ_le_sqrt_hsSeminormSq_uniform`
+into `norm_paraproductPartial_le_of_cumulative_bound` gives a paraproduct
+bound whose constant depends only on `s`.  The resulting partial commutator
+estimate drops the `(N+1)` factor on the paraproduct and swap pieces. -/
+
+/-- **Uniform-in-`N` paraproduct piece.**  For `s > 1`, the paraproduct
+`paraproductPartial N f g x` is bounded by
+`Mf · 4·(1-2^(-(s-1)))⁻¹ · √(hsSeminormSq s g)`, uniformly in `N`. -/
+theorem norm_paraproductPartial_le_hs_uniform
+    (N : ℕ) (s : ℝ) (hs : 1 < s) (f g : 𝕋² → ℂ) (x : 𝕋²)
+    {Mf : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hMf : 0 ≤ Mf)
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2)) :
+    ‖paraproductPartial N f g x‖ ≤
+      Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+        Real.sqrt (hsSeminormSq s g) := by
+  have hα : 0 < s - 1 := by linarith
+  have hprefac_nn : 0 ≤ (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹ :=
+    geometric_two_neg_eps_prefactor_nonneg hα
+  have hhs_nn : 0 ≤ hsSeminormSq s g := hsSeminormSq_nonneg s g
+  have hpp := norm_paraproductPartial_le_of_cumulative_bound N f g x hf hMf
+  have hshift := sum_Ico_lpProjector_le_range_shifted N g x
+  -- Square-root form of the uniform-in-N CS bound on ∑ ‖Δ_{j+1} g x‖.
+  have hCS_sq :=
+    sum_lpProjector_succ_le_sqrt_hsSeminormSq_uniform N s hs g x hgsum
+  -- Take square roots: ∑ ‖Δ‖ ≤ √(16·C²·hs) = 4·C·√hs.
+  have hsum_nn :
+      (0 : ℝ) ≤ ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) g x‖ :=
+    Finset.sum_nonneg (fun _ _ => norm_nonneg _)
+  have hrhs_nn : (0 : ℝ) ≤
+      16 * ((1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 * hsSeminormSq s g :=
+    mul_nonneg (mul_nonneg (by norm_num) (sq_nonneg _)) hhs_nn
+  have hlin :
+      ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) g x‖ ≤
+        4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹ *
+          Real.sqrt (hsSeminormSq s g) := by
+    have hsqrt_le :
+        Real.sqrt ((∑ j ∈ Finset.range (N + 1),
+            ‖lpProjector (j + 1) g x‖) ^ 2) ≤
+          Real.sqrt (16 *
+              ((1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 * hsSeminormSq s g) :=
+      Real.sqrt_le_sqrt hCS_sq
+    rw [Real.sqrt_sq hsum_nn] at hsqrt_le
+    -- Rewrite RHS sqrt: √(16·C²·hs) = 4·C·√hs.
+    have hrhs_eq :
+        Real.sqrt (16 * ((1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 *
+            hsSeminormSq s g) =
+          4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹ *
+            Real.sqrt (hsSeminormSq s g) := by
+      rw [show (16 : ℝ) * ((1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 *
+              hsSeminormSq s g =
+            (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) ^ 2 *
+              hsSeminormSq s g by ring]
+      rw [Real.sqrt_mul (sq_nonneg _),
+          Real.sqrt_sq (mul_nonneg (by norm_num) hprefac_nn)]
+    rw [hrhs_eq] at hsqrt_le
+    exact hsqrt_le
+  calc ‖paraproductPartial N f g x‖
+      ≤ Mf * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M g x‖ := hpp
+    _ ≤ Mf * ∑ j ∈ Finset.range (N + 1), ‖lpProjector (j + 1) g x‖ :=
+        mul_le_mul_of_nonneg_left hshift hMf
+    _ ≤ Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹ *
+          Real.sqrt (hsSeminormSq s g)) :=
+        mul_le_mul_of_nonneg_left hlin hMf
+    _ = Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+          Real.sqrt (hsSeminormSq s g) := by ring
+
+/-- **Uniform-in-`N` quantitative Kato–Ponce partial commutator bound.**
+
+The paraproduct and swap pieces of the Bony-expanded commutator
+(`paraproductPartial N f g` and `paraproductPartial N g f`) are bounded
+by constants independent of `N`.  Writing
+`C_s := 4·(1-2^(-(s-1)))⁻¹` for the `s`-only prefactor, the commutator is
+bounded by
+
+`‖partialCommutator N f g x‖ ≤
+  Sfg + Mf · C_s · √(hsSeminormSq s g) + Mg · C_s · √(hsSeminormSq s f)
+      + card_diag · (Mf · Mg) + T`
+
+where `Sfg, T` encode the pointwise `S_N(f·g)` value and tail (both
+discharged by ambient Sobolev-embedding hypotheses downstream).  This
+drops the `(N+1)` factor from `norm_partialCommutator_le_hs`. -/
+theorem norm_partialCommutator_le_hs_uniform
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) (s : ℝ) (hs : 1 < s)
+    {Mf Mg Sfg T : ℝ}
+    (hf : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j f x‖ ≤ Mf)
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMf : 0 ≤ Mf) (hMg : 0 ≤ Mg)
+    (hfsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2))
+    (hgsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff g k'‖ ^ 2))
+    (hSfg : ‖lpPartialSum N (fun t => f t * g t) x‖ ≤ Sfg)
+    (hTail : ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤ T) :
+    ‖partialCommutator N f g x‖ ≤
+      Sfg
+        + Mf * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s g)
+        + Mg * (4 * (1 - (2 : ℝ) ^ (-(s - 1)))⁻¹) *
+            Real.sqrt (hsSeminormSq s f)
+        + ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+              (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Mf * Mg) + T := by
+  have hbony := norm_partialCommutator_le_bony N f g x
+  have hpp := norm_paraproductPartial_le_hs_uniform N s hs f g x hf hMf hgsum
+  have hps := norm_paraproductPartial_le_hs_uniform N s hs g f x hg hMg hfsum
+  have hR : ‖remainderPartial N f g x‖ ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card * (Mf * Mg) := by
+    refine norm_remainderPartial_le_of_shell_bounds N f g x ?_ ?_ hMf
+    · intro j hj
+      exact (norm_lpProjector_le_cumulative N f x j hj).trans hf
+    · intro j hj
+      exact (norm_lpProjector_le_cumulative N g x j hj).trans hg
+  linarith
+
 end FourierAnalysis
