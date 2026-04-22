@@ -69,6 +69,16 @@ lemma hsSeminormSq_zero (s : ℝ) : hsSeminormSq s (0 : 𝕋² → ℂ) = 0 := b
   unfold hsSeminormSq
   simp [mFourierCoeff_zero_fn]
 
+/-- The Ḣˢ seminorm-squared is homogeneous of degree 2 in scalar multiplication. -/
+lemma hsSeminormSq_smul (s : ℝ) (c : ℂ) (f : 𝕋² → ℂ) :
+    hsSeminormSq s (c • f) = ‖c‖ ^ 2 * hsSeminormSq s f := by
+  unfold hsSeminormSq
+  rw [← tsum_mul_left]
+  congr 1
+  funext k
+  rw [mFourierCoeff_smul, norm_smul]
+  ring
+
 /-- `Real.rpow` form of the per-shell bound using the identity
 `4^(N+1) · (2^N)^(-2s) · 4 = 16 · 2^(2N(1-s))` (expressed as rpow). -/
 private lemma rpow_shell_simplify (N : ℕ) (s : ℝ) :
