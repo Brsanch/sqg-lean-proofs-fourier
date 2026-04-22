@@ -379,7 +379,8 @@ lemma card_dyadicAnnulus_succ_pos (N : ℕ) : 0 < (dyadicAnnulus (N + 1)).card :
     have habs : ((2 ^ N : ℤ)).natAbs = 2 ^ N := by
       induction N with
       | zero => rfl
-      | succ N ih => rw [pow_succ]; push_cast; rw [Int.natAbs_mul]; simp [ih]
+      | succ N ih =>
+          rw [pow_succ]; push_cast; rw [Int.natAbs_mul]; simp [ih, pow_succ]
     simp [habs]
     exact Nat.pow_lt_pow_right (by norm_num : 1 < 2) (Nat.lt_succ_self _)
 
