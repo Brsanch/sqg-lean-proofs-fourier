@@ -236,4 +236,19 @@ theorem norm_paraproductPartial_le_of_cumulative_bound
   rw [Finset.mem_Ico] at hM
   exact norm_lpPartialSum_le_of_uniform N f x hf (M - 3) (by omega)
 
+/-! ### Symmetric paraproduct piece: `T_g f` bound
+
+The "swapped" paraproduct `paraproductPartial N g f x` is bounded by
+the same low/high structure with `f` and `g` exchanged. -/
+
+/-- Symmetric paraproduct piece bounded by a cumulative `L∞`-style
+bound on `g` times the sum of high-frequency projectors of `f`. -/
+theorem norm_paraproductPartial_swap_le_of_cumulative_bound
+    (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) {Mg : ℝ}
+    (hg : ∑ j ∈ Finset.range (N + 1), ‖lpProjector j g x‖ ≤ Mg)
+    (hMg : 0 ≤ Mg) :
+    ‖paraproductPartial N g f x‖ ≤
+      Mg * ∑ M ∈ Finset.Ico 3 (N + 1), ‖lpProjector M f x‖ :=
+  norm_paraproductPartial_le_of_cumulative_bound N g f x hg hMg
+
 end FourierAnalysis
