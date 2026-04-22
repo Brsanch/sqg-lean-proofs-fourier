@@ -14,10 +14,12 @@ This package is **upstream of several PDE projects**:
 
 ## Status
 
-**1492 LOC, CI green.**  Core Littlewood–Paley, Bony paraproduct,
-and homogeneous Sobolev infrastructure in place.  Remaining work
-targets `L²` paraproduct bounds, the full Kato–Ponce commutator, and
-downstream plumbing in `sqg-lean-proofs`.
+**~1880 LOC, CI green.**  Littlewood–Paley decomposition, Bony
+paraproduct identity with L² bounds, Kato–Ponce commutator at the
+partial level, and homogeneous Sobolev infrastructure are all
+in-tree.  Remaining work targets the L² Kato–Ponce commutator
+quantitative bound (Coifman–Meyer–style) and downstream plumbing
+in consuming projects.
 
 ## Module contents
 
@@ -28,21 +30,24 @@ FourierAnalysis/
                              dyadic annuli/balls, Fourier projector
                              Δ_N and partial sum S_N, pointwise
                              convergence from mathlib's HasSum.
-    Bernstein.lean        -- triangle, Cauchy–Schwarz, and explicit
+    Bernstein.lean        -- triangle, Cauchy–Schwarz, explicit
                              4^(N+1) / sqrt forms of the Bernstein
                              bound; Parseval bridge via Summable.
   Paraproduct/
     Defs.lean             -- paraproductPartial N f g,
-                             remainderPartial N f g, ordered +
+                             remainderPartial N f g, ordered and
                              filtered sum forms, and Bony's partial
                              decomposition f·g = T_f g + T_g f + R.
-    Bounds.lean           -- triangle, CS-form, and vanishing
-                             criteria on paraproduct / remainder.
+    Bounds.lean           -- triangle + Cauchy–Schwarz shell bounds,
+                             L² paraproduct + remainder bounds via
+                             Parseval, L∞×L² bilinear wrapper.
   KatoPonce/
     Product.lean          -- structural product bounds.
     Commutator.lean       -- partialCommutator N f g with
-                             triangle, projector-level, and
-                             antisymmetry identities.
+                             Bony expansion identity, four-piece
+                             triangle bound, and structural
+                             Kato–Ponce estimate combining the
+                             paraproduct + swap + remainder pieces.
     SobolevEmbedding.lean -- hsSeminormSq, lattice zeta, geometric
                              convergence at s > 1, and the triangle
                              version of Ḣˢ ⊂ L∞.
