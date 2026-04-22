@@ -120,6 +120,44 @@ lemma paraproductPartial_swap_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x 
   · intro _ _; rfl
   · intro _ _; ring
 
+/-- Scalar linearity of the paraproduct in the left (low-frequency) argument. -/
+lemma paraproductPartial_smul_left (N : ℕ) (c : ℂ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N (c • f) g x = c • paraproductPartial N f g x := by
+  unfold paraproductPartial
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun M _ => ?_)
+  rw [lpPartialSum_smul]
+  simp [smul_eq_mul, mul_assoc]
+
+/-- Scalar linearity of the paraproduct in the right (high-frequency) argument. -/
+lemma paraproductPartial_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    paraproductPartial N f (c • g) x = c • paraproductPartial N f g x := by
+  unfold paraproductPartial
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun M _ => ?_)
+  rw [lpProjector_smul]
+  simp [smul_eq_mul]
+  ring
+
+/-- Scalar linearity of the remainder in the left argument. -/
+lemma remainderPartial_smul_left (N : ℕ) (c : ℂ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    remainderPartial N (c • f) g x = c • remainderPartial N f g x := by
+  unfold remainderPartial
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun p _ => ?_)
+  rw [lpProjector_smul]
+  simp [smul_eq_mul, mul_assoc]
+
+/-- Scalar linearity of the remainder in the right argument. -/
+lemma remainderPartial_smul_right (N : ℕ) (f : 𝕋² → ℂ) (c : ℂ) (g : 𝕋² → ℂ) (x : 𝕋²) :
+    remainderPartial N f (c • g) x = c • remainderPartial N f g x := by
+  unfold remainderPartial
+  rw [Finset.smul_sum]
+  refine Finset.sum_congr rfl (fun p _ => ?_)
+  rw [lpProjector_smul]
+  simp [smul_eq_mul]
+  ring
+
 /-- The symmetric remainder is commutative in its arguments. -/
 lemma remainderPartial_comm (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     remainderPartial N f g x = remainderPartial N g f x := by
