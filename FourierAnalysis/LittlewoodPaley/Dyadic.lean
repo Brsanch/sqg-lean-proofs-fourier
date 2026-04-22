@@ -147,11 +147,9 @@ private lemma two_pow_sq_eq_four_pow (m : ℕ) : ((2 : ℕ) ^ m) ^ 2 = 4 ^ m := 
   induction m with
   | zero => rfl
   | succ m ih =>
-      calc ((2 : ℕ) ^ (m + 1)) ^ 2
-          = (2 ^ m * 2) ^ 2 := by rw [pow_succ]
-        _ = (2 ^ m) ^ 2 * 2 ^ 2 := by rw [mul_pow]
-        _ = 4 ^ m * 4 := by rw [ih]
-        _ = 4 ^ (m + 1) := by rw [← pow_succ]
+      have step : ((2 : ℕ) ^ (m + 1)) ^ 2 = ((2 : ℕ) ^ m) ^ 2 * 4 := by
+        rw [pow_succ]; ring
+      rw [step, ih, ← pow_succ]
 
 /-- Dyadic shell size is `O(4^N)` uniformly (needed for Bernstein). -/
 lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
@@ -160,7 +158,6 @@ lemma card_dyadicAnnulus_succ_le_four_pow (N : ℕ) :
       ≤ (lInfBall (2 ^ (N + 1))).card := card_dyadicAnnulus_succ_le N
     _ ≤ (2 * 2 ^ (N + 1)) ^ 2 := card_lInfBall_le _
     _ = 4 * 4 ^ (N + 1) := by
-        rw [mul_pow, two_pow_sq_eq_four_pow]
-        rfl
+        rw [mul_pow, two_pow_sq_eq_four_pow]; norm_num
 
 end FourierAnalysis
