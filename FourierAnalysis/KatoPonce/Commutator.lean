@@ -18,6 +18,7 @@ in the limit `N → ∞` uses the Bony decomposition from
 
 import FourierAnalysis.Paraproduct.Bounds
 import FourierAnalysis.KatoPonce.Product
+import FourierAnalysis.KatoPonce.SobolevEmbedding
 import FourierAnalysis.LittlewoodPaley.Bernstein
 
 namespace FourierAnalysis
@@ -347,5 +348,76 @@ theorem norm_partialCommutator_structural_le
     · intro j hj
       exact (norm_lpProjector_le_cumulative N g x j hj).trans hg
   linarith
+
+/-! ### Shell-sum → `hsSeminormSq` bridge
+
+For `j ≥ 1`, every mode `k` in `dyadicAnnulus j` has `lInfNorm k ≥ 2^(j-1) ≥ 1`,
+so `(2^(j-1))^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖²`.  Summing
+and bounding by the full `hsSeminormSq` gives
+`∑ k ∈ shell j, ‖f̂(k)‖² ≤ (2^(j-1))^(-2s) · hsSeminormSq s f`. -/
+
+/-- Pointwise lower bound on the `Ḣˢ`-weight on the shell at level `N+1`:
+for any `k` with `2^N ≤ lInfNorm k`, we have
+`(2^N)^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖²` when `0 ≤ 2s`. -/
+private lemma pow_shell_le_rpow_lInfNorm (N : ℕ) (s : ℝ) (hs : 0 < s)
+    (k : Fin 2 → ℤ) (hk : 2 ^ N ≤ lInfNorm k) :
+    ((2 : ℝ) ^ N) ^ (2 * s) ≤ (lInfNorm k : ℝ) ^ (2 * s) := by
+  have hpow_nn : (0 : ℝ) ≤ (2 : ℝ) ^ N := by positivity
+  have hlo : ((2 : ℝ) ^ N) ≤ (lInfNorm k : ℝ) := by exact_mod_cast hk
+  have h2s_nn : (0 : ℝ) ≤ 2 * s := by linarith
+  exact Real.rpow_le_rpow hpow_nn hlo h2s_nn
+
+/-- **Shell-sum → `Ḣˢ` bridge.**  For `s > 0` and `N ≥ 0`, the unweighted
+square-sum of Fourier coefficients on `dyadicAnnulus (N+1)` is bounded by
+`(2^N)^(-2s) · hsSeminormSq s f`. -/
+theorem sum_shell_sq_le_hsSeminormSq_weighted
+    (N : ℕ) (s : ℝ) (hs : 0 < s) (f : 𝕋² → ℂ)
+    (hsum : Summable (fun k' : Fin 2 → ℤ =>
+      (lInfNorm k' : ℝ) ^ (2 * s) * ‖mFourierCoeff f k'‖ ^ 2)) :
+    ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+      ((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f := by
+  have hpow_pos : (0 : ℝ) < (2 : ℝ) ^ N := by positivity
+  have hpow_rpow_pos : (0 : ℝ) < ((2 : ℝ) ^ N) ^ (2 * s) :=
+    Real.rpow_pos_of_pos hpow_pos _
+  have hsum_weighted_shell_le_tot :
+      ∑ k ∈ dyadicAnnulus (N + 1),
+          (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤
+      hsSeminormSq s f := by
+    refine hsum.sum_le_tsum _ (fun k _ =>
+      mul_nonneg (Real.rpow_nonneg (Nat.cast_nonneg _) _) (sq_nonneg _))
+  -- Pointwise: (2^N)^(2s) · ‖f̂(k)‖² ≤ (lInfNorm k)^(2s) · ‖f̂(k)‖².
+  have hpoint : ∀ k ∈ dyadicAnnulus (N + 1),
+      ((2 : ℝ) ^ N) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 ≤
+        (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 := by
+    intro k hk
+    rw [mem_dyadicAnnulus_succ] at hk
+    exact mul_le_mul_of_nonneg_right
+      (pow_shell_le_rpow_lInfNorm N s hs k hk.1) (sq_nonneg _)
+  have hweighted_shell_le :
+      ((2 : ℝ) ^ N) ^ (2 * s) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+        ∑ k ∈ dyadicAnnulus (N + 1),
+          (lInfNorm k : ℝ) ^ (2 * s) * ‖mFourierCoeff f k‖ ^ 2 := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum hpoint
+  -- Combine: (2^N)^(2s) · shell_sum ≤ hsSeminormSq s f.
+  have hshell_le_hs :
+      ((2 : ℝ) ^ N) ^ (2 * s) *
+          ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2 ≤
+        hsSeminormSq s f :=
+    hweighted_shell_le.trans hsum_weighted_shell_le_tot
+  -- Divide by (2^N)^(2s): shell_sum ≤ (2^N)^(-2s) · hsSeminormSq s f.
+  have hid : ((2 : ℝ) ^ N) ^ (-(2 * s)) * hsSeminormSq s f =
+      (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ * hsSeminormSq s f := by
+    rw [Real.rpow_neg (le_of_lt hpow_pos)]
+  rw [hid]
+  calc ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2
+      = (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ *
+          (((2 : ℝ) ^ N) ^ (2 * s) *
+            ∑ k ∈ dyadicAnnulus (N + 1), ‖mFourierCoeff f k‖ ^ 2) := by
+        rw [← mul_assoc, inv_mul_cancel₀ (ne_of_gt hpow_rpow_pos), one_mul]
+    _ ≤ (((2 : ℝ) ^ N) ^ (2 * s))⁻¹ * hsSeminormSq s f := by
+        refine mul_le_mul_of_nonneg_left hshell_le_hs ?_
+        exact inv_nonneg.mpr (le_of_lt hpow_rpow_pos)
 
 end FourierAnalysis
