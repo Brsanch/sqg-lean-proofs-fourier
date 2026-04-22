@@ -63,6 +63,25 @@ lemma hsSeminormSq_smul (s : ℝ) (c : ℂ) (f : 𝕋² → ℂ) :
   rw [mFourierCoeff_smul, norm_smul]
   ring
 
+/-- The Ḣˢ seminorm-squared is invariant under negation. -/
+@[simp] lemma hsSeminormSq_neg (s : ℝ) (f : 𝕋² → ℂ) :
+    hsSeminormSq s (-f) = hsSeminormSq s f := by
+  have h : (-f : 𝕋² → ℂ) = ((-1 : ℂ) • f) := by
+    funext t; simp
+  rw [h, hsSeminormSq_smul]
+  simp
+
+/-- Scalar bound on the Ḣˢ seminorm: if `‖c‖ ≤ 1`, then scalar multiplication
+by `c` does not increase the seminorm. -/
+lemma hsSeminormSq_smul_le (s : ℝ) (c : ℂ) (f : 𝕋² → ℂ) (hc : ‖c‖ ≤ 1) :
+    hsSeminormSq s (c • f) ≤ hsSeminormSq s f := by
+  rw [hsSeminormSq_smul]
+  have hnn := hsSeminormSq_nonneg s f
+  calc ‖c‖ ^ 2 * hsSeminormSq s f
+      ≤ 1 ^ 2 * hsSeminormSq s f :=
+        mul_le_mul_of_nonneg_right (pow_le_pow_left₀ (norm_nonneg _) hc 2) hnn
+    _ = hsSeminormSq s f := by ring
+
 /-- `Real.rpow` form of the per-shell bound using the identity
 `4^(N+1) · (2^N)^(-2s) · 4 = 16 · 2^(2N(1-s))` (expressed as rpow). -/
 private lemma rpow_shell_simplify (N : ℕ) (s : ℝ) :
