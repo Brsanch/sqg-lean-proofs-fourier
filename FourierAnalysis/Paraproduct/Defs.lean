@@ -120,4 +120,31 @@ lemma paraproductPartial_swap_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x 
   · intro _ _; rfl
   · intro _ _; ring
 
+/-- **Bony's partial decomposition** on `𝕋²`.  The pointwise product of the
+dyadic partial sums at level `N` splits into the "low × high" paraproduct,
+its swap, and the symmetric remainder. -/
+theorem bony_partial (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum N f x * lpPartialSum N g x =
+      paraproductPartial N f g x +
+        paraproductPartial N g f x +
+        remainderPartial N f g x := by
+  rw [lpPartialSum_mul_lpPartialSum, ← Finset.sum_product']
+  rw [paraproductPartial_eq_sum_filter, paraproductPartial_swap_eq_sum_filter]
+  unfold remainderPartial
+  rw [Finset.sum_filter, Finset.sum_filter, Finset.sum_filter]
+  rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl (fun p _ => ?_)
+  by_cases h1 : p.1 + 3 ≤ p.2
+  · have hnot2 : ¬ p.2 + 3 ≤ p.1 := by omega
+    have hnot3 : ¬ Nat.dist p.1 p.2 ≤ 2 := by
+      simp only [Nat.dist]; omega
+    simp [h1, hnot2, hnot3]
+  · by_cases h2 : p.2 + 3 ≤ p.1
+    · have hnot3 : ¬ Nat.dist p.1 p.2 ≤ 2 := by
+        simp only [Nat.dist]; omega
+      simp [h1, h2, hnot3]
+    · have h3 : Nat.dist p.1 p.2 ≤ 2 := by
+        simp only [Nat.dist]; omega
+      simp [h1, h2, h3]
+
 end FourierAnalysis
