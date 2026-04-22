@@ -36,4 +36,40 @@ theorem norm_remainderPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
   refine Finset.sum_le_sum (fun p _ => ?_)
   rw [norm_mul]
 
+/-- Cauchy–Schwarz form on the paraproduct: the squared pointwise value is
+controlled by the shell-pair count times the sum of squared shell-product
+moduli. -/
+theorem sq_norm_paraproductPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖paraproductPartial N f g x‖ ^ 2 ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => p.1 + 3 ≤ p.2)).card *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => p.1 + 3 ≤ p.2),
+          (‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 := by
+  have h1 := norm_paraproductPartial_le N f g x
+  have h2 : (0 : ℝ) ≤ ‖paraproductPartial N f g x‖ := norm_nonneg _
+  calc ‖paraproductPartial N f g x‖ ^ 2
+      ≤ (∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => p.1 + 3 ≤ p.2),
+          ‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 :=
+        pow_le_pow_left₀ h2 h1 2
+    _ ≤ _ := sq_sum_le_card_mul_sum_sq
+
+/-- Cauchy–Schwarz form on the remainder. -/
+theorem sq_norm_remainderPartial_le (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    ‖remainderPartial N f g x‖ ^ 2 ≤
+      ((Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+          (fun p => Nat.dist p.1 p.2 ≤ 2)).card *
+        ∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2),
+          (‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 := by
+  have h1 := norm_remainderPartial_le N f g x
+  have h2 : (0 : ℝ) ≤ ‖remainderPartial N f g x‖ := norm_nonneg _
+  calc ‖remainderPartial N f g x‖ ^ 2
+      ≤ (∑ p ∈ (Finset.range (N + 1) ×ˢ Finset.range (N + 1)).filter
+                (fun p => Nat.dist p.1 p.2 ≤ 2),
+          ‖lpProjector p.1 f x‖ * ‖lpProjector p.2 g x‖) ^ 2 :=
+        pow_le_pow_left₀ h2 h1 2
+    _ ≤ _ := sq_sum_le_card_mul_sum_sq
+
 end FourierAnalysis
