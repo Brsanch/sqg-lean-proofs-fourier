@@ -107,95 +107,78 @@ theorem norm_partialCommutator_via_projectors (N : ℕ) (f g : 𝕋² → ℂ) (
   rw [norm_mul]
   exact mul_le_mul_of_nonneg_left (norm_lpPartialSum_le _ _ _) (norm_nonneg _)
 
-/-- **Bony expansion of the partial commutator.**  Decomposes
-`partialCommutator N f g x = S_N(f·g)(x) - f(x) · S_N(g)(x)` as
+/-- **Two-term split of the partial commutator.**
 
 `partialCommutator N f g x =
-  [S_N(f·g)(x) - S_N(f)(x) · S_N(g)(x)]
+  [S_N(f·g)(x) - S_N(f)(x) · S_N(g)(x)]   +   (S_N(f)(x) - f x) · S_N(g)(x)`
+
+The first bracket is the "product-of-partial-sums" defect: `S_N` doesn't
+commute with multiplication, and this defect drives the high-frequency
+contribution to the commutator.  The second term is a "tail" that
+vanishes as `N → ∞` when `f` has summable Fourier coefficients. -/
+theorem partialCommutator_eq_split (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    partialCommutator N f g x =
+      (lpPartialSum N (fun t => f t * g t) x -
+          lpPartialSum N f x * lpPartialSum N g x)
+        + (lpPartialSum N f x - f x) * lpPartialSum N g x := by
+  unfold partialCommutator
+  ring
+
+/-- **Bony expansion of the partial commutator.**  Decomposes
+`partialCommutator N f g x` as
+
+`partialCommutator N f g x =
+  S_N(f·g)(x)
     - paraproductPartial N f g x
     - paraproductPartial N g f x
     - remainderPartial N f g x
     + (S_N(f)(x) - f x) · S_N(g)(x)`
 
-using Bony's partial identity `bony_partial` on the `S_N(f) · S_N(g)`
-intermediate.  The lead bracket `S_N(f·g) - S_N(f)·S_N(g)` encodes the
-high-frequency correction vanishing in the `N → ∞` limit. -/
+obtained by substituting `S_N(f)·S_N(g) = paraproductPartial N f g +
+paraproductPartial N g f + remainderPartial N f g` (via `bony_partial`)
+into the two-term split `partialCommutator_eq_split`.  This is the
+Bony form used to split the commutator into three dyadic pieces plus
+a pure "tail" contribution `(S_N(f) - f)·S_N(g)`. -/
 theorem partialCommutator_eq_bony_expansion (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     partialCommutator N f g x =
-      (lpPartialSum N (fun t => f t * g t) x -
-          lpPartialSum N f x * lpPartialSum N g x)
+      lpPartialSum N (fun t => f t * g t) x
         - paraproductPartial N f g x
         - paraproductPartial N g f x
         - remainderPartial N f g x
         + (lpPartialSum N f x - f x) * lpPartialSum N g x := by
   unfold partialCommutator
   have hbony := bony_partial N f g x
-  rw [← hbony]
-  ring
+  -- Goal: S_N(fg) - f·B = S_N(fg) - P1 - P2 - R + (A - f)·B.
+  -- Expand (A - f)·B = A·B - f·B, use hbony: A·B = P1 + P2 + R.
+  linear_combination -hbony
 
 /-- Triangle bound on the partial commutator via the Bony expansion. -/
 theorem norm_partialCommutator_le_bony (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
     ‖partialCommutator N f g x‖ ≤
-      ‖lpPartialSum N (fun t => f t * g t) x -
-          lpPartialSum N f x * lpPartialSum N g x‖
+      ‖lpPartialSum N (fun t => f t * g t) x‖
         + ‖paraproductPartial N f g x‖
         + ‖paraproductPartial N g f x‖
         + ‖remainderPartial N f g x‖
         + ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ := by
   rw [partialCommutator_eq_bony_expansion]
-  have h1 : ‖(lpPartialSum N (fun t => f t * g t) x -
-                lpPartialSum N f x * lpPartialSum N g x) -
-              paraproductPartial N f g x -
-              paraproductPartial N g f x -
-              remainderPartial N f g x +
-              (lpPartialSum N f x - f x) * lpPartialSum N g x‖ ≤
-      ‖(lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x) -
-          paraproductPartial N f g x -
-          paraproductPartial N g f x -
-          remainderPartial N f g x‖ +
-        ‖(lpPartialSum N f x - f x) * lpPartialSum N g x‖ :=
-    norm_add_le _ _
-  have h2 : ‖(lpPartialSum N (fun t => f t * g t) x -
-                lpPartialSum N f x * lpPartialSum N g x) -
-              paraproductPartial N f g x -
-              paraproductPartial N g f x -
-              remainderPartial N f g x‖ ≤
-      ‖(lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x) -
-          paraproductPartial N f g x -
-          paraproductPartial N g f x‖ +
-        ‖remainderPartial N f g x‖ := by
-    simpa [sub_eq_add_neg, norm_neg] using
-      (norm_sub_le
-        ((lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x) -
-          paraproductPartial N f g x -
-          paraproductPartial N g f x) (remainderPartial N f g x))
-  have h3 : ‖(lpPartialSum N (fun t => f t * g t) x -
-                lpPartialSum N f x * lpPartialSum N g x) -
-              paraproductPartial N f g x -
-              paraproductPartial N g f x‖ ≤
-      ‖(lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x) -
-          paraproductPartial N f g x‖ +
-        ‖paraproductPartial N g f x‖ := by
-    simpa [sub_eq_add_neg, norm_neg] using
-      (norm_sub_le
-        ((lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x) -
-          paraproductPartial N f g x) (paraproductPartial N g f x))
-  have h4 : ‖(lpPartialSum N (fun t => f t * g t) x -
-                lpPartialSum N f x * lpPartialSum N g x) -
-              paraproductPartial N f g x‖ ≤
-      ‖lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x‖ +
-        ‖paraproductPartial N f g x‖ := by
-    simpa [sub_eq_add_neg, norm_neg] using
-      (norm_sub_le
-        (lpPartialSum N (fun t => f t * g t) x -
-            lpPartialSum N f x * lpPartialSum N g x)
-        (paraproductPartial N f g x))
-  linarith
+  -- Abbreviate the five pieces.
+  set S := lpPartialSum N (fun t => f t * g t) x
+  set P1 := paraproductPartial N f g x
+  set P2 := paraproductPartial N g f x
+  set R := remainderPartial N f g x
+  set T := (lpPartialSum N f x - f x) * lpPartialSum N g x
+  -- Goal: ‖S - P1 - P2 - R + T‖ ≤ ‖S‖ + ‖P1‖ + ‖P2‖ + ‖R‖ + ‖T‖.
+  calc ‖S - P1 - P2 - R + T‖
+      = ‖S + (-P1) + (-P2) + (-R) + T‖ := by
+        congr 1; ring
+    _ ≤ ‖S + (-P1) + (-P2) + (-R)‖ + ‖T‖ := norm_add_le _ _
+    _ ≤ ‖S + (-P1) + (-P2)‖ + ‖(-R)‖ + ‖T‖ := by
+        have := norm_add_le (S + (-P1) + (-P2)) (-R); linarith
+    _ ≤ ‖S + (-P1)‖ + ‖(-P2)‖ + ‖(-R)‖ + ‖T‖ := by
+        have := norm_add_le (S + (-P1)) (-P2); linarith
+    _ ≤ ‖S‖ + ‖(-P1)‖ + ‖(-P2)‖ + ‖(-R)‖ + ‖T‖ := by
+        have := norm_add_le S (-P1); linarith
+    _ = ‖S‖ + ‖P1‖ + ‖P2‖ + ‖R‖ + ‖T‖ := by
+        simp [norm_neg]
 
 end FourierAnalysis
