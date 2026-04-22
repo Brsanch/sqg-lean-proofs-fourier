@@ -120,6 +120,30 @@ lemma paraproductPartial_swap_eq_sum_filter (N : ℕ) (f g : 𝕋² → ℂ) (x 
   · intro _ _; rfl
   · intro _ _; ring
 
+/-- The symmetric remainder is commutative in its arguments. -/
+lemma remainderPartial_comm (N : ℕ) (f g : 𝕋² → ℂ) (x : 𝕋²) :
+    remainderPartial N f g x = remainderPartial N g f x := by
+  unfold remainderPartial
+  refine Finset.sum_nbij'
+    (fun p => (p.2, p.1))
+    (fun p => (p.2, p.1))
+    ?_ ?_ ?_ ?_ ?_
+  · intro p hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hp
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
+    refine ⟨⟨h2, h1⟩, ?_⟩
+    rw [Nat.dist_comm]; exact h3
+  · intro p hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range] at hp
+    obtain ⟨⟨h1, h2⟩, h3⟩ := hp
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_range]
+    refine ⟨⟨h2, h1⟩, ?_⟩
+    rw [Nat.dist_comm]; exact h3
+  · intro _ _; rfl
+  · intro _ _; rfl
+  · intro _ _; ring
+
 /-- **Bony's partial decomposition** on `𝕋²`.  The pointwise product of the
 dyadic partial sums at level `N` splits into the "low × high" paraproduct,
 its swap, and the symmetric remainder. -/
