@@ -232,6 +232,15 @@ lemma lpPartialSum_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
   unfold lpPartialSum
   simp
 
+/-- The zeroth dyadic block is the DC component `f̂(0)`, since
+`dyadicAnnulus 0 = {0}` and `mFourier 0 = 1`. -/
+lemma lpProjector_zero_eq_mFourierCoeff_zero (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpProjector 0 f x = mFourierCoeff f 0 := by
+  unfold lpProjector
+  rw [show dyadicAnnulus 0 = ({(0 : Fin 2 → ℤ)} : Finset _) from rfl,
+      Finset.sum_singleton, mFourier_zero]
+  simp
+
 lemma lpPartialSum_succ (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
     lpPartialSum (N + 1) f x = lpPartialSum N f x + lpProjector (N + 1) f x := by
   unfold lpPartialSum
