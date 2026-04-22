@@ -21,9 +21,10 @@ namespace FourierAnalysis
 
 /-! ### 2D torus notation -/
 
-/-- The 2D flat torus `𝕋² = (ℝ / ℤ)²`.  Measure-theoretic structure is
-inherited from mathlib (product of Haar on `AddCircle (1 : ℝ)`). -/
-scoped notation "𝕋²" => Fin 2 → AddCircle (1 : ℝ)
+/-- The 2D flat torus `𝕋² = (ℝ / ℤ)²`, realised as the mathlib
+`UnitAddTorus (Fin 2)`.  Inherits Haar-normalised probability measure
+via `Pi` on `UnitAddCircle`. -/
+scoped notation "𝕋²" => UnitAddTorus (Fin 2)
 
 /-! ### ℓ∞ norm on ℤ² -/
 
@@ -204,5 +205,26 @@ lemma dyadicAnnulus_pairwiseDisjoint (N : ℕ) :
   rcases lt_or_gt_of_ne hMM' with h | h
   · exact dyadicAnnulus_disjoint_of_lt h
   · exact (dyadicAnnulus_disjoint_of_lt h).symm
+
+/-! ### Dyadic Fourier projector -/
+
+open UnitAddTorus in
+/-- Fourier projection of `f : 𝕋² → ℂ` onto the dyadic shell at level `N`. -/
+noncomputable def lpProjector (N : ℕ) (f : 𝕋² → ℂ) : 𝕋² → ℂ :=
+  fun x => ∑ k ∈ dyadicAnnulus N, mFourierCoeff f k • mFourier k x
+
+open UnitAddTorus in
+/-- Dyadic partial sum up to level `N`. -/
+noncomputable def lpPartialSum (N : ℕ) (f : 𝕋² → ℂ) : 𝕋² → ℂ :=
+  fun x => ∑ j ∈ Finset.range (N + 1), lpProjector j f x
+
+open UnitAddTorus in
+/-- The `N`-th partial sum equals the Fourier truncation to `lInfBall (2^N)`. -/
+lemma lpPartialSum_eq_sum_lInfBall (N : ℕ) (f : 𝕋² → ℂ) (x : 𝕋²) :
+    lpPartialSum N f x =
+      ∑ k ∈ lInfBall (2 ^ N), mFourierCoeff f k • mFourier k x := by
+  unfold lpPartialSum lpProjector
+  rw [← Finset.sum_biUnion (dyadicAnnulus_pairwiseDisjoint N),
+      ← lInfBall_eq_biUnion_dyadicAnnulus]
 
 end FourierAnalysis
