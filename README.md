@@ -18,7 +18,10 @@ This package is **upstream of several PDE projects**:
 paraproduct identity with L² (Parseval) bounds, **quantitative
 Ḣˢ-valued Kato–Ponce commutator bounds uniform-in-N** via dyadic-
 weighted Cauchy–Schwarz, and homogeneous Sobolev infrastructure
-are all in-tree.
+are all in-tree.  The downstream `sqg-lean-proofs` repository
+additionally machine-verifies Rellich–Kondrachov compact embedding
+`H¹(𝕋²) ⊂⊂ L²` in Fourier form and the inverse Fourier transform
+`Lp from Fourier coefficients` via mathlib's `mFourierBasis`.
 
 ## Module contents
 
