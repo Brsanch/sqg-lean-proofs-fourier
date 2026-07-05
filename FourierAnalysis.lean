@@ -1,3 +1,4 @@
+import FourierAnalysis.ArgmaxFromDecay
 import FourierAnalysis.LittlewoodPaley
 import FourierAnalysis.Paraproduct
 import FourierAnalysis.KatoPonce
