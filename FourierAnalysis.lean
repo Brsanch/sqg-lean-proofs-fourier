@@ -1,4 +1,5 @@
 import FourierAnalysis.ArgmaxFromDecay
+import FourierAnalysis.LatticeZeta
 import FourierAnalysis.LittlewoodPaley
 import FourierAnalysis.Paraproduct
 import FourierAnalysis.KatoPonce
