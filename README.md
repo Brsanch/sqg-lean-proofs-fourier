@@ -7,10 +7,17 @@ for `s > d/2`.
 
 This package is **upstream of several PDE projects**:
 - [sqg-lean-proofs](https://github.com/Brsanch/sqg-lean-proofs) —
-  Surface Quasi-Geostrophic regularity.
-- (Planned) Navier–Stokes regularity classical content.
-- (Planned) Euler regularity classical content.
-- (Planned) MHD classical content.
+  Surface Quasi-Geostrophic regularity (consumes the Kato–Ponce / `Ḣˢ`
+  machinery and the `d = 2` lattice-zeta bound).
+- [ns-lean-proofs](https://github.com/Brsanch/ns-lean-proofs) —
+  Navier–Stokes BLW chain (consumes the spatial-argmax primitive and the
+  `d = 3` lattice-zeta bound).
+- (Planned) Euler / MHD classical content.
+
+Beyond the Fourier machinery, the package also holds two general
+active-scalar primitives shared by both consumers above: a
+domain-polymorphic spatial argmax (`ArgmaxFromDecay.lean`) and an
+arbitrary-dimension lattice Epstein-zeta bound (`LatticeZeta.lean`).
 
 ## Status
 
@@ -27,6 +34,16 @@ additionally machine-verifies Rellich–Kondrachov compact embedding
 
 ```
 FourierAnalysis/
+  ArgmaxFromDecay.lean    -- domain-polymorphic compactness-via-decay
+                             spatial argmax: continuous f : X → ℝ on any
+                             [TopologicalSpace X] that decays to 0 at the
+                             cocompact filter and is positive somewhere
+                             attains its global max.
+  LatticeZeta.lean        -- arbitrary-dimension lattice Epstein-zeta
+                             bound: ∀ finite A ⊆ ℤᵈ\{0}, ∑ ‖a‖⁻ᵖ ≤
+                             2·d·3^{d-1}·ζ(p-(d-1)) for d ≥ 1, p > d
+                             (ℓ∞ annular shells). Instantiated at d=2
+                             (SQG) and d=3 (NS).
   LittlewoodPaley/
     Dyadic.lean           -- 𝕋² = UnitAddTorus (Fin 2), ℓ∞ lattice,
                              dyadic annuli/balls, Fourier projector
@@ -58,15 +75,19 @@ FourierAnalysis/
 
 ## Downstream consumption
 
+Both `sqg-lean-proofs` and `ns-lean-proofs` require it via git:
+
 ```toml
-# sqg-lean-proofs/lakefile.toml
 [[require]]
 name = "fourier_analysis"
-path = "../sqg-lean-proofs-fourier"  # or git URL
+git = "https://github.com/Brsanch/sqg-lean-proofs-fourier.git"
+rev = "main"
 ```
 
 ```lean
-import FourierAnalysis.KatoPonce.Commutator
+import FourierAnalysis.KatoPonce.Commutator   -- Ḣˢ / Kato–Ponce (SQG)
+import FourierAnalysis.ArgmaxFromDecay        -- spatial argmax (NS + SQG)
+import FourierAnalysis.LatticeZeta            -- lattice Epstein-zeta (NS + SQG)
 open FourierAnalysis
 ```
 
